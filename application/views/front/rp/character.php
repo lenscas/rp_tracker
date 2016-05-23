@@ -15,7 +15,7 @@
 		</div>
 	</div>
 	<div class="row">
-		<form method="POST" action="<?php echo base_url("index.php/rp/character/create/".$rpCode) ?>" enctype="multipart/form-data">
+		<form method="POST" id="mainPost" action="<?php echo base_url("index.php/rp/character/create/".$rpCode) ?>" enctype="multipart/form-data">
 			<div id="screen1">
 				<div class="input-group">
 					<span class="input-group-addon"> Name</span>
@@ -52,7 +52,11 @@
 				</div>
 				<div class="input-group">
 					<span class="input-group-addon">Strength</span>
-					<input type="text" id="strenght" name="strenght" class="stat form-control" placeholder="Strength">
+					<input type="text" id="accuracy" name="accuracy" class="stat form-control" placeholder="Accuracy">
+				</div>
+				<div class="input-group">
+					<span class="input-group-addon">Strength</span>
+					<input type="text" id="strenght" name="strength" class="stat form-control" placeholder="Strength">
 				</div>
 				<div class="input-group">
 					<span class="input-group-addon">Magical Skill</span>
@@ -102,7 +106,7 @@ $(".pageSwap").on("click",function(event){
 })
 $("#creatCharacter").on("click",function(event){
 	event.preventDefault()
-	
+	$("#mainPost").submit();
 })
 //simple solution against browser remembering disabled button status
 //TODO better solution

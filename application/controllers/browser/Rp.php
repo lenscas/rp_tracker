@@ -19,8 +19,11 @@ class Rp extends RP_Parent {
 		$this->form_validation->set_rules("magicalSkill","magicalSkill","required|integer");
 		$this->form_validation->set_rules("magicalDefence","magicalDefence","required|integer");
 		if($this->form_validation->run()){
+			echo "The validation went correctly<br><pre>";
 			$this->load->model("Rp_model");
-			$data=$this->Rp_model->createChar($this->userId,$rpId,$this->input->post());
+			$data=$this->Rp_model->creatCharacter($this->userId,$rpCode,$this->input->post());
+			print_r($data);
+			echo "</pre>";
 			if($data['success']){
 				$showForm=false;
 				$config['upload_path']	= './assets/uploads/characters';
@@ -29,13 +32,15 @@ class Rp extends RP_Parent {
 				$config['max_width']	= '0';
 				$config['max_height']	= '0';
 				$config['remove_spaces']=true;
+				$this->load->library('upload', $config);
+				if ($this->upload->do_upload("appearancePicture")){
+					$uploadData=$this->upload->data();
+					$this->Rp_model->setPicture($data['charId'],$uploadData['file_name'],false);
+				} 
 			}
-			$this->load->library('upload', $config);
-			if ($this->upload->do_upload("appearancePicture")){
-				$uploadData=$this->upload->data();
-				$this->Rp_model->setPicture($data['charId'],$uploadData['file_name'],false);
-			} 
+			
 		}
+		echo validation_errors();
 		if($showForm){
 			parent::loadAll("rp/character",array("rpCode"=>$rpCode));
 		}

@@ -8,7 +8,7 @@ class Rp_model extends MY_Model {
 		$found=true;
 		while($found){
 			$code=random_string('alnum', 7);
-			$found=$this->codeToId($code);
+			$found=$this->getRPByCode($code);
 		}
 		$postData['code']=$code;
 		if($postData['isPrivate']=="true"){
@@ -35,7 +35,7 @@ class Rp_model extends MY_Model {
 				->get()
 				->row();
 	}
-	public function checkInRp($userId,$rpCode){
+	public function checkInRp($userId,$rpId){
 		return	$this->db->select("*")
 				->from("players")
 				->where("userId",$userId)
@@ -43,26 +43,26 @@ class Rp_model extends MY_Model {
 				->get()
 				->row();
 	}
-	public function creatCharacter($userId,$rpId,$data){
+	public function creatCharacter($userId,$rpCode,$data){
 		//first check if the code was valid
-		$rp=$this->codeToId($rpCode);
-		if(!$rpId){
+		$rp=$this->getRPByCode($rpCode);
+		if(!$rp){
 			return array("success"=>false,"error"=>"code is not a valid rp");
 		}
 		//Now, check if the player joined the rp
-		$player=$this->checkInRp($userId,$rpId);
-		if(!$playerId){
+		$player=$this->checkInRp($userId,$rp->id);
+		if(!$player){
 			return array("success"=>false,"error"=>"User did not join the rp.");
 		}
 		//then now, check if the player is a gm, if he is then we are going to skip the check to see if he has indeed the max amount of start stats
-		if(! $player['is_GM']){
+		if(! $player->is_GM){
 			//Lets count them all up 
 			$amount=$data['health']+$data['armour']+data['strenght']+data['accuracy']+data['magicalDefence']+data['magicalSkill'];
 			if($amount!=$rp['startingStatAmount']){
 				return array("success"=>false,"error"=>"User did not set a correct amount of stats.");
 			}
 		}
-		$data['playerId']=$player['id'];
+		$data['playerId']=$player->id;
 		$this->db->insert("characters",$data);
 		return array("success"=>true,"charId"=>$this->db->insert_id());
 	}
