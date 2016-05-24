@@ -75,4 +75,31 @@ class Rp_model extends MY_Model {
 		->update("characters");
 		return array("success"=>true);
 	}
+	public function getAllRPs(){
+		return $this->db->select("rolePlays.name, rolePlays.description, users.username,rolePlays.code")
+				->from("rolePlays")
+				->where("rolePlays.isPrivate",0)
+				->join("users","users.id=rolePlays.creator")
+				->get()
+				->result_array();
+	}
+	public function getWholeRp($rpCode){
+		$rp=$this->getRPByCode($rpCode);
+		if($rp){
+			$rp->characters	=	$this->db->select("characters.name")
+								->from("characters")
+								->join("players","players.id=characters.playerId")
+								->where("players.rpId",$rp->id)
+								->get()
+								->result_array();
+			$rp->username		=	$this->db->select("users.username")
+								->from("users")
+								->where("id",$rp->creator)
+								->get()
+								->row()
+								->username;
+		}
+		
+		return $rp;
+	}
 }
