@@ -45,5 +45,16 @@ class Rp extends RP_Parent {
 			parent::loadAll("rp/character",array("rpCode"=>$rpCode));
 		}
 	}
-	
+	public function showAllRPs(){
+		parent::loadAll("rp/rpList");
+	}
+	public function getRpDetails($rpCode){
+		$this->load->model("Rp_model");
+		if($this->Rp_model->getRPByCode($rpCode)){
+			$data=array("rpCode"=>$rpCode);
+		} else {
+			$data=array("exist"=>false);
+		}
+		parent::loadAll("rp/details",$data);
+	}
 }

@@ -69,6 +69,8 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['rp/create']					=	"browser/Rp/create";
 		$route['rp/success/(:any)']			=	"browser/Rp/createChar/$1";
 		$route['rp/character/create/(:any)']=	"browser/Rp/createChar/$1";
+		$route['rp/list']					=	"browser/Rp/showAllRPs";
+		$route['rp/details/(:any)']			=	"browser/Rp/getRpDetails/$1";
 
 //ajax
 	//user
@@ -78,3 +80,6 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['ajax/character/(:any)']	=	"json/Character/show/$1/false";
 	//rp
 		$route["ajax/rp/create"]		=	"json/Rp/create";
+		$route['ajax/rp/getAllRPs']		=	"json/Rp/listAllRPs";
+		$route['ajax/rp/details/(:any)']=	"json/Rp/getRP/$1";
+
