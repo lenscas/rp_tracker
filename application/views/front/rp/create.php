@@ -1,4 +1,4 @@
-<div class="col-md-6">
+<div class="col-md-8">
 	<div class="row">
 		<div class="col-md-12"><h2>Create the rp</h2></div>
 	</div>

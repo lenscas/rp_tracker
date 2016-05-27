@@ -1,4 +1,4 @@
-<div class="col-md-6">
+<div class="col-md-8">
 	<div class="row">
 		<div style="text-align:center">	
 			<h1 id="characterName"></h1>

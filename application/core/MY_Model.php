@@ -16,5 +16,19 @@ class My_model extends CI_Model {
 		return sha1(random_string("alpha", 8)."/".time());
 	
 	}
+	public function createCode($table){
+		$this->load->helper('string');
+		$found=true;
+		while($found){
+			$code=random_string('alnum', 7);
+			$found=$this->db->select("code")
+			->from($table)
+			->where("code",$code)
+			->get()
+			->row();
+		}
+		return $code;
+		
+	}
 
 }
