@@ -1,5 +1,5 @@
 
-		<div class="col-md-6">
+		<div class="col-md-8">
 			<div class="login-box"   '><!-- height:768px; max-width:1024px;width:100%; -->
 				<div class="login-box-body" style="background:none;">
 					<p class="login-box-msg">Register</p>

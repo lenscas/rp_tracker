@@ -1,4 +1,4 @@
-		<div class="col-md-6">
+		<div class="col-md-8">
 			<div class="hold-transition login-page" style="background:none;">
 				<div class="row">
 					<div class="login-logo" style="padding-top:50px">

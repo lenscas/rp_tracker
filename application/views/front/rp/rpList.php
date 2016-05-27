@@ -17,7 +17,7 @@
 		</div>
 	</div>
 </div>
-<div class="col-md-6" id="rpContainer">
+<div class="col-md-8" id="rpContainer">
 	
 </div>
 <script>

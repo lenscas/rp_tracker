@@ -19,11 +19,8 @@ class Rp extends RP_Parent {
 		$this->form_validation->set_rules("magicalSkill","magicalSkill","required|integer");
 		$this->form_validation->set_rules("magicalDefence","magicalDefence","required|integer");
 		if($this->form_validation->run()){
-			echo "The validation went correctly<br><pre>";
 			$this->load->model("Rp_model");
 			$data=$this->Rp_model->creatCharacter($this->userId,$rpCode,$this->input->post());
-			print_r($data);
-			echo "</pre>";
 			if($data['success']){
 				$showForm=false;
 				$config['upload_path']	= './assets/uploads/characters';
@@ -35,8 +32,9 @@ class Rp extends RP_Parent {
 				$this->load->library('upload', $config);
 				if ($this->upload->do_upload("appearancePicture")){
 					$uploadData=$this->upload->data();
-					$this->Rp_model->setPicture($data['charId'],$uploadData['file_name'],false);
+					$this->Rp_model->setPicture($data['data']['charId'],$uploadData['file_name'],false);
 				} 
+				redirect("rp/character/view/".$data['data']['code']);
 			}
 			
 		}
@@ -50,11 +48,16 @@ class Rp extends RP_Parent {
 	}
 	public function getRpDetails($rpCode){
 		$this->load->model("Rp_model");
-		if($this->Rp_model->getRPByCode($rpCode)){
-			$data=array("rpCode"=>$rpCode);
+		$rp=$this->Rp_model->getRPByCode($rpCode);
+		if($rp){
+			$joined=$this->Rp_model->checkIfJoined($this->userId,$rp->id);
+			$data=array("rpCode"=>$rpCode,"joined"=>$joined);
 		} else {
 			$data=array("exist"=>false);
 		}
 		parent::loadAll("rp/details",$data);
+	}
+	public function character($charCode){
+		parent::loadAll("rp/viewCharacter",array("charCode"=>$charCode));
 	}
 }

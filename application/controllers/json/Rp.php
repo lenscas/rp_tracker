@@ -24,6 +24,24 @@ class Rp extends RP_Parent {
 		echo json_encode($data);
 	}
 	public function getRP($rpCode){
-		echo json_encode($this->Rp_model->getWholeRp($rpCode));
+		$rp=$this->Rp_model->getWholeRp($rpCode);
+		unset($rp->id);
+		echo json_encode($rp);
+	}
+	public function join($rpCode){
+		$rp=$this->Rp_model->getRPByCode($rpCode);
+		if($rp){
+			if($this->Rp_model->joinRp($this->userId,$rp->id)){
+				echo json_encode(array("success"=>true));
+			} else {
+				echo json_encode(array("success"=>false,"error"=>"Already Joined"));
+			}
+		} else {
+			echo json_encode(array("success"=>false,"error"=>"Code is not a valid rp"));
+		}
+		
+	}
+	public function getCharacter($charCode){
+		echo json_encode($this->Rp_model->getCharacter($charCode));
 	}
 }

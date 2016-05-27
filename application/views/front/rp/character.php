@@ -1,4 +1,4 @@
-<div class="col-md-6">
+<div class="col-md-8">
 	<div class="row">
 		<div class="col-md-4">
 			<button id="lastScreenButton" class="pageSwap btn btn-warning" disabled>
@@ -51,7 +51,11 @@
 					<input type="text" id="armour" name="armour" class="stat form-control" placeholder="armour">
 				</div>
 				<div class="input-group">
-					<span class="input-group-addon">Strength</span>
+					<span class="input-group-addon">Agility</span>
+					<input type="text" id=:agility name="agility" class="stat form-control" placeholder="agility">
+				</div>
+				<div class="input-group">
+					<span class="input-group-addon">Accuracy</span>
 					<input type="text" id="accuracy" name="accuracy" class="stat form-control" placeholder="Accuracy">
 				</div>
 				<div class="input-group">

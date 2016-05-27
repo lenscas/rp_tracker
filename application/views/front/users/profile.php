@@ -6,7 +6,7 @@
 		</a>
 	</div>
 </div>
-<div class="col-md-6" style="height:100%">
+<div class="col-md-8" style="height:100%">
 	<div class="row" style="height:10%">
 		<div style="text-align:center">	
 			<h1 id="userName"></h1>
