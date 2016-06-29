@@ -19,11 +19,11 @@
 			<div id="screen1">
 				<div class="input-group">
 					<span class="input-group-addon"> Name</span>
-					<input type="text" name="name" id="name" class="form-control" placeholder="Name">
+					<input type="text" name="name" id="name" class="form-control required" placeholder="Name">
 				</div>
 				<div class="input-group">
 					<span class="input-group-addon">Age</span>
-					<input type="text" name="age" id="age" class="form-control" placeholder="Age">
+					<input type="text" name="age" id="age" class="form-control required" placeholder="Age">
 				</div>
 			</div>
 			<div id="screen2" style="display:none">
@@ -110,7 +110,46 @@ $(".pageSwap").on("click",function(event){
 })
 $("#creatCharacter").on("click",function(event){
 	event.preventDefault()
-	$("#mainPost").submit();
+	var canPost=true
+	var totalStatAmount=0;
+	$('.required').each(function(index){
+		if(! $(this).val()){
+			canPost=false;
+			console.log('on required')
+			console.log($(this))
+			return false
+		}
+	})
+	
+	if(canPost){
+		$('.stat').each(function(index){
+			var stat=Number($(this).val())
+			if(stat){
+				totalStatAmount=totalStatAmount+stat
+			} else {
+				console.log("on stat")
+				console.log($(this))
+				canPost=false
+				return false
+			}
+		})
+	}
+	if(canPost){
+		if(totalStatAmount!=25){
+			console.log("too many points given")
+			canPost=false
+		}
+	}
+	if(canPost){
+		console.log(tinyMCE.get("backstory").getContent())
+		if( ( ! tinymce.get("backstory").getContent() ) || ( ! tinymce.get("personality").getContent() ) ) {
+			console.log("on tinymce")
+			canPost=false
+		}
+	}
+	if(canPost){
+		$("#mainPost").submit();
+	}
 })
 //simple solution against browser remembering disabled button status
 //TODO better solution

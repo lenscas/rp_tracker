@@ -4,11 +4,11 @@
 			<img id="picture" class="img-responsive col-md-6 thumbnail pull-right">	
 			<h1 id="name" class="fillIn"></h1>
 			<span>Age:&nbsp;<span class="fillIn" id="age"></span></span>
-			<h4>Backstory</h4>
+			<h3>Backstory</h3>
 			<div id="backstory" class="fillIn"></div>
-			<h4>Personality</h4>
+			<h3>Personality</h3>
 			<div id="personality" class="fillIn"></div>
-			<h4>Backstory</h4>
+			<h3>Backstory</h3>
 			<div id="backstory" class="fillIn"></div>
 			<table class="table table-striped table-hover table-condensed">
 				<tr>
