@@ -13,8 +13,8 @@ class Rp_model extends MY_Model {
 		$postData['creator']=$userId;
 		$this->db->insert("rolePlays",$postData);
 		$rpId=$this->db->insert_id();
-		$playerId=$this->joinRp($userId,$rpId,1);
-		return array("success"=>true,"playerId"=>$playerId);
+		$this->joinRp($userId,$rpId,1);
+		return array("success"=>true,"code"=>$postData['code']);
 	}
 	public function checkIfJoined($userId,$rpId){
 		return	$this->db->select("id")

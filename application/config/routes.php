@@ -67,7 +67,7 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['character/(:any)']	=	"browser/Users/character/$1";
 	//rp
 		$route['rp/create']					=	"browser/Rp/create";
-		$route['rp/success/(:any)']			=	"browser/Rp/createChar/$1";
+		//$route['rp/success/(:any)']			=	"browser/Rp/createChar/$1";
 		
 		$route['rp/list']					=	"browser/Rp/showAllRPs";
 		$route['rp/details/(:any)']			=	"browser/Rp/getRpDetails/$1";
