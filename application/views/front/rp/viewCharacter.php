@@ -41,7 +41,7 @@
 			<h3>Backstory</h3>
 			<div id="backstory" class="fillIn"></div>
 			<h3>Personality</h3>
-			<div id="personality" class="fillIn"></div>
+			<div id="personality" class="fillIn" style="margin-bottom:15px;"></div>
 		</div>
 	</div>
 </div>

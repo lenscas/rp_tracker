@@ -1,4 +1,22 @@
-<div class="col-md-8">
+<div id="templates" style="display:none">
+	<div class="ability">
+		<h4 class="abilityCount">Ability 1</h4>
+		<div class="input-group">
+			<span class="input-group-addon">Ability name</span>
+			<input type="text" class="form-control abilities" placeholder="Ability name">
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon">Ability Cooldown</span>
+			<input type="text" class="form-control abilities" placeholder="Cooldown">
+		</div>
+		<h3>Ability description</h3>
+		<textarea></textarea>
+	</div>
+</div>
+<div class="col-md-8" style="height:100%; overflow:auto">
+	<div class="row" id="errors" style="display:none">
+		<div class="alert alert-danger" id="errorMessage"></div>
+	</div>
 	<div class="row">
 		<div class="col-md-4">
 			<button id="lastScreenButton" class="pageSwap btn btn-warning" disabled>
@@ -71,7 +89,26 @@
 					<input type="text" id="magicalDefence" name="magicalDefence" class="stat form-control" placeholder="Magical Defence">
 				</div>
 			</div>
-			<button id="creatCharacter" class="btn btn-success pull-right">Create</button>
+			<div id="screen5" style="display:none">
+				<h3>Abilities</h3>
+				<div id="abilitiesContainer"></div>
+			</div>
+			<div class="input-group" style="margin-top:5px; width:100%">
+				<div class="col-md-6">
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" name="isMinion" id="isMinion"> Minion
+						</label>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<button id="creatCharacter" class="btn btn-success pull-right">Create</button>
+				</div>
+			</div>
+			<div class="input-group" style="width:100%">
+				<h3>Aditional notes</h3>
+				<textarea id="notes" name="notes"></textarea>
+			</div>
 		</form>
 	</div>
 </div>
@@ -80,6 +117,24 @@ tinymce.init({
 	selector: 'textarea'  // change this value according to your HTML
 });
 var ON_SCREEN=1
+var CONFIG={}
+function showError(error){
+	$("#errors").show()
+	$("#errorMessage").empty().html(error)
+}
+$.ajax({
+	url		:	"<?php echo base_url("index.php/ajax/rp/getRules/".$rpCode) ?>",
+	method	:	"GET",
+	dataType:	"json",
+	success	:	function(data){
+		CONFIG=data;
+		var template=$("#templates").find(".ability")
+		for(times=1;times<=CONFIG.startingAbilityAmount;times++){
+			$(template).find(".abilityCount").empty().html("Ability "+times)
+			$(template).clone().appendTo($("#abilitiesContainer"));
+		}
+	}
+})
 $(".pageSwap").on("click",function(event){
 	//first, get which direction we need to go
 	var id=$(this).attr("id")
@@ -87,19 +142,19 @@ $(".pageSwap").on("click",function(event){
 	if(id=="lastScreenButton"){
 		direction=-1
 	}
-	if((ON_SCREEN<=1 && direction==-1) || (ON_SCREEN>=4 && direction==1)){
+	if((ON_SCREEN<=1 && direction==-1) || (ON_SCREEN>=5 && direction==1)){
 		//set it to disabled once again, as appently that didn't happen
 		$(this).attr("disabled","disabled")
 	} else {
 		ON_SCREEN=ON_SCREEN+direction
-		for(screen=1;screen<=4;screen++){
+		for(screen=1;screen<=5;screen++){
 			$("#screen"+screen).css("display","none")
 		}
 		$("#screen"+ON_SCREEN).css("display","")
 		if(ON_SCREEN==1){
 			$("#lastScreenButton").prop("disabled","disabled")
 			$("#nextScreenButton").prop("disabled","")
-		} else if(ON_SCREEN==4){
+		} else if(ON_SCREEN==5){
 			$("#lastScreenButton").prop("disabled","")
 			$("#nextScreenButton").prop("disabled","disabled")
 		} else {
@@ -112,21 +167,36 @@ $("#creatCharacter").on("click",function(event){
 	event.preventDefault()
 	var canPost=true
 	var totalStatAmount=0;
-	$('.required').each(function(index){
-		if(! $(this).val()){
+	var error;
+	var isNormal	=	!$("#isMinion").prop("checked")
+	console.log($("#isMinion").prop("checked"))
+	if( isNormal){
+		$('.required').each(function(index){
+			if(! $(this).val()){
+				if($(this).attr("id")=="name"){
+					error="Your character needs to have a name";
+				}else {
+					error="Your character needs to have an age";
+				}
+				canPost=false;
+				console.log('on required')
+				console.log($(this))
+				return false
+			}
+		})
+	} else {
+		if( ! $("#name").val()){
+			error="Your minion needs to have a name";
 			canPost=false;
-			console.log('on required')
-			console.log($(this))
-			return false
 		}
-	})
-	
+	}
 	if(canPost){
 		$('.stat').each(function(index){
 			var stat=Number($(this).val())
 			if(stat){
 				totalStatAmount=totalStatAmount+stat
 			} else {
+				error="one or more stats are not filled in";
 				console.log("on stat")
 				console.log($(this))
 				canPost=false
@@ -134,21 +204,25 @@ $("#creatCharacter").on("click",function(event){
 			}
 		})
 	}
-	if(canPost){
-		if(totalStatAmount!=25){
-			console.log("too many points given")
+	if(canPost && isNormal){
+		if(totalStatAmount!=CONFIG.startingStatAmount){
+			error="The amount of stats you gave does not equal to the amount your character needs";
 			canPost=false
 		}
 	}
-	if(canPost){
+	if(canPost && isNormal){
 		console.log(tinyMCE.get("backstory").getContent())
 		if( ( ! tinymce.get("backstory").getContent() ) || ( ! tinymce.get("personality").getContent() ) ) {
 			console.log("on tinymce")
+			error="Personality or Backstory are missing"
 			canPost=false
 		}
 	}
 	if(canPost){
-		$("#mainPost").submit();
+		console.log("posted")
+		//$("#mainPost").submit();
+	}else{
+		showError(error);
 	}
 })
 //simple solution against browser remembering disabled button status

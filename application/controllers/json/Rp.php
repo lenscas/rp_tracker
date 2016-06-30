@@ -44,4 +44,7 @@ class Rp extends RP_Parent {
 	public function getCharacter($charCode){
 		echo json_encode($this->Rp_model->getCharacter($charCode));
 	}
+	public function getRPRules($rpCode){
+		echo json_encode($this->Rp_model->getRPRulesByCode($rpCode));
+	}
 }

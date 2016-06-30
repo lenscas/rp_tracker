@@ -127,4 +127,11 @@ class Rp_model extends MY_Model {
 			return array("success"=>false,"error"=>"This character does not exist");
 		}
 	}
+	public function getRPRulesByCode($rpCode){
+		return	$this->db->select("startingStatAmount,startingAbilityAmount")
+				->from("rolePlays")
+				->where("code",$rpCode)
+				->get()
+				->row_array();
+	}
 }

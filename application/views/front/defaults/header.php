@@ -41,8 +41,8 @@
     <![endif]-->
 
 </head>
-<body style="padding-top:0px; height:100%; overflow:hidden" >
-	<nav class=" navbar navbar-default" style="margin-bottom:0px; height:5%;">
+<body style="padding-top:0px; height:100%; overflow:hidden; position:relative;" >
+	<nav class=" navbar navbar-default" style="margin-bottom:0px; height:50px; width:100%; position:absolute;">
 		<div class="container-fluid" style="height:100%">
 			<div class="navbar-header" style="height:100%">
 				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-examample-navbar-collapse-1" area-expanded="false">
@@ -83,5 +83,5 @@
 			</div>
 		</div>
 	</nav>
-	<div class="container-fluid" style="height:95%; padding-left:0;padding-right:0;">
-		<div class="col-md-12" style="height:100%; padding:0;margin:0;">
+	<div class="container-fluid" style="height:calc(100% - 50px); top:50px; padding-left:0;padding-right:0; position:absolute; width:100%">
+		<div class="col-md-12" style="height:100%; padding:0;margin:0; ">

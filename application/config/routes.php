@@ -86,3 +86,4 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['ajax/rp/details/(:any)']		=	"json/Rp/getRP/$1";
 		$route['ajax/rp/join/(:any)']			=	"json/Rp/join/$1";
 		$route['ajax/rp/getCharacter/(:any)']	=	"json/Rp/getCharacter/$1";
+		$route['ajax/rp/getRules/(:any)']		=	"json/Rp/getRPRules/$1";
