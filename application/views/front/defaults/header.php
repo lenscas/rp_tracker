@@ -41,7 +41,7 @@
     <![endif]-->
 
 </head>
-<body style="padding-top:0px; height:100%; " >
+<body style="padding-top:0px; height:100%; overflow:hidden" >
 	<nav class=" navbar navbar-default" style="margin-bottom:0px; height:5%;">
 		<div class="container-fluid" style="height:100%">
 			<div class="navbar-header" style="height:100%">
@@ -83,5 +83,5 @@
 			</div>
 		</div>
 	</nav>
-	<div class="container-fluid" style="height:85%; padding-left:0;padding-right:0;">
+	<div class="container-fluid" style="height:95%; padding-left:0;padding-right:0;">
 		<div class="col-md-12" style="height:100%; padding:0;margin:0;">

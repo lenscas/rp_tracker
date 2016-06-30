@@ -3,14 +3,12 @@
 		<div class="row">
 			<img id="picture" class="img-responsive col-md-6 thumbnail pull-right">	
 			<h1 id="name" class="fillIn"></h1>
-			<span>Age:&nbsp;<span class="fillIn" id="age"></span></span>
-			<h3>Backstory</h3>
-			<div id="backstory" class="fillIn"></div>
-			<h3>Personality</h3>
-			<div id="personality" class="fillIn"></div>
-			<h3>Backstory</h3>
-			<div id="backstory" class="fillIn"></div>
+			<!--<span>Age:&nbsp;<span class="fillIn" id="age"></span></span>-->
 			<table class="table table-striped table-hover table-condensed">
+				<tr>
+					<td>Age:</td>
+					<td id="age" class='fillIn'></td>
+				</tr>
 				<tr>
 					<td>Health:</td>
 					<td id="health" class="fillIn"></td>
@@ -40,6 +38,10 @@
 					<td id="magicalDefence" class="fillIn"></td>
 				</tr>
 			</table>
+			<h3>Backstory</h3>
+			<div id="backstory" class="fillIn"></div>
+			<h3>Personality</h3>
+			<div id="personality" class="fillIn"></div>
 		</div>
 	</div>
 </div>
