@@ -3,14 +3,14 @@
 		<h4 class="abilityCount">Ability 1</h4>
 		<div class="input-group">
 			<span class="input-group-addon">Ability name</span>
-			<input type="text" class="form-control abilities" placeholder="Ability name">
+			<input type="text" class="form-control abilityName abilities" placeholder="Ability name">
 		</div>
 		<div class="input-group">
 			<span class="input-group-addon">Ability Cooldown</span>
-			<input type="text" class="form-control abilities" placeholder="Cooldown">
+			<input type="text" class="form-control abilityCooldown abilities" placeholder="Cooldown">
 		</div>
 		<h3>Ability description</h3>
-		<textarea></textarea>
+		<textarea class="abilityDescription"></textarea>
 	</div>
 </div>
 <div class="col-md-8" style="height:100%; overflow:auto">
@@ -113,9 +113,7 @@
 	</div>
 </div>
 <script>
-tinymce.init({
-	selector: 'textarea'  // change this value according to your HTML
-});
+
 var ON_SCREEN=1
 var CONFIG={}
 function showError(error){
@@ -131,8 +129,15 @@ $.ajax({
 		var template=$("#templates").find(".ability")
 		for(times=1;times<=CONFIG.startingAbilityAmount;times++){
 			$(template).find(".abilityCount").empty().html("Ability "+times)
+			$(template).find(".abilityName").attr("name","abilities[ability"+times+"][name]")
+			$(template).find(".abilityCooldown").attr("name","abilities[ability"+times+"][cooldown]")
+			$(template).find(".abilityDescription").attr("name","abilities[ability"+times+"][description]")
 			$(template).clone().appendTo($("#abilitiesContainer"));
 		}
+		tinymce.init({
+			selector: 'textarea'  // change this value according to your HTML
+		});
+		 
 	}
 })
 $(".pageSwap").on("click",function(event){
@@ -211,7 +216,7 @@ $("#creatCharacter").on("click",function(event){
 		}
 	}
 	if(canPost && isNormal){
-		console.log(tinyMCE.get("backstory").getContent())
+		//console.log(tinyMCE.get("backstory").getContent())
 		if( ( ! tinymce.get("backstory").getContent() ) || ( ! tinymce.get("personality").getContent() ) ) {
 			console.log("on tinymce")
 			error="Personality or Backstory are missing"
@@ -220,7 +225,7 @@ $("#creatCharacter").on("click",function(event){
 	}
 	if(canPost){
 		console.log("posted")
-		//$("#mainPost").submit();
+		$("#mainPost").submit();
 	}else{
 		showError(error);
 	}
