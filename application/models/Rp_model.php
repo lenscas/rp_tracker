@@ -94,9 +94,6 @@ class Rp_model extends MY_Model {
 		foreach ($abilities as $key=>$value){
 			$abilities[$key]['charId']=$data['charId'];
 		}
-		echo "<pre>";
-		print_r($abilities);
-		echo "</pre>";
 		$this->db->insert_batch("abilities",$abilities);
 		return array("success"=>true,"data"=>$data);
 	}

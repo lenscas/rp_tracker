@@ -7,10 +7,9 @@
 <div class="col-md-8" id="rpContainer" style="height:100%; overflow:auto">
 	<div class="col-md-12" id="textContainer">
 		<div class="row">
-			<img id="picture" class="img-responsive col-md-6 thumbnail pull-right">	
+			
 			<div class="col-md-6">
 				<h1 id="name" class="fillIn"></h1>
-				<!--<span>Age:&nbsp;<span class="fillIn" id="age"></span></span>-->
 				<table class="table table-striped table-hover table-condensed pull-left">
 					<tr>
 						<td>Age:</td>
@@ -47,12 +46,17 @@
 				</table>
 				<div id="abilityContainer"></div>
 			</div>
+			<div class="col-md-6" id="appearance">
+				<img id="picture" class="img-responsive thumbnail">	
+			</div>
 		</div>
 		<div class="row">
 			<h3>Backstory</h3>
 			<div id="backstory" class="fillIn"></div>
 			<h3>Personality</h3>
-			<div id="personality" class="fillIn" style="margin-bottom:15px;"></div>
+			<div id="personality" class="fillIn"></div>
+			<h3 class="notes">Extra notes</h3>
+			<div id="notes" class="notes fillIn" style="margin-bottom:15px;"></div> 
 		</div>
 	</div>
 </div>
@@ -88,7 +92,8 @@ $.ajax({
 		if(data.character.appearancePicture){
 			$("#picture").attr("src","<?php echo base_url() ?>"+data.character.appearancePicture)
 		} else {
-			$("#picture").hide()
+			console.log(data.character)
+			$("#appearance").empty().html("<h3>Appearance</h3><div>"+data.character.appearanceDescription+"</div>")
 		}
 
 	}
