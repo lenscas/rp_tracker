@@ -58,7 +58,7 @@
 			},
 		success	:	function(data){
 				if(data.success){
-					window.location="<?php echo base_url("/index.php/rp/success") ?>/"+data.playerId
+					window.location="<?php echo base_url("/index.php/rp/details") ?>/"+data.code
 				}
 			}
 		})

@@ -67,7 +67,7 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['character/(:any)']	=	"browser/Users/character/$1";
 	//rp
 		$route['rp/create']					=	"browser/Rp/create";
-		$route['rp/success/(:any)']			=	"browser/Rp/createChar/$1";
+		//$route['rp/success/(:any)']			=	"browser/Rp/createChar/$1";
 		
 		$route['rp/list']					=	"browser/Rp/showAllRPs";
 		$route['rp/details/(:any)']			=	"browser/Rp/getRpDetails/$1";
@@ -86,3 +86,4 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['ajax/rp/details/(:any)']		=	"json/Rp/getRP/$1";
 		$route['ajax/rp/join/(:any)']			=	"json/Rp/join/$1";
 		$route['ajax/rp/getCharacter/(:any)']	=	"json/Rp/getCharacter/$1";
+		$route['ajax/rp/getRules/(:any)']		=	"json/Rp/getRPRules/$1";
