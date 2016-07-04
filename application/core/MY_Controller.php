@@ -48,8 +48,43 @@ class RP_Parent extends User_Parent {
 
 class User_Parent extends CI_Controller {
 	//used to make sure the construct of the parent always gets executed
+	public $sessionData;
 	public function __construct() {
 		parent::__construct();
+		$this->sessionData=$this->session->get_userdata();
+		if(!isset($this->sessionData['noForge'])){
+			$this->load->helper("string");
+			$this->sessionData['noForge']=random_string("alnum",8);
+			$this->session->set_userdata(array("noForge"=>$this->sessionData['noForge']));
+		}
+	}
+	//check if the request really comes from the user and not something else
+	public function checkLegit($code,$mode="error",$to="profile"){
+		if($code != $this->sessionData['noForge']){
+			if($mode=="redirect") {
+				redirect($to);
+			}elseif($mode=="die"|| $mode=="exit"){
+				exit;
+			} else {
+				return array("success"=>false,"error"=>"Strings don't match'");
+			}
+		}
+		return array("success"=>true);
+	}
+	//automatically cleans the input
+	public function getPostSafe($alsoGiveError=false){
+		//$this->load->library("security");
+		if($alsoGiveError){
+			$text=$this->input->post();
+			$clean=$this->security->xss_clean($this->input->post());
+			$safe=false;
+			if($clean===$text){
+				$safe=true;
+			}
+			return array("safe"=>$safe,"clean"=>$clean,"raw"=>$text);
+		} else {
+			return $this->security->xss_clean($this->input->post());
+		}
 	}
 	//used to force a login
 	public function forceLogIn(){

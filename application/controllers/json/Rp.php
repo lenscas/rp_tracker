@@ -3,7 +3,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Rp extends RP_Parent {
 	public function __construct(){
-		
 		parent::__construct();
 		$this->load->model("Rp_model");
 	}
@@ -15,7 +14,7 @@ class Rp extends RP_Parent {
 		$this->form_validation->set_rules("startingAbilityAmount","startingAbilityAmount","required|integer");
 		$this->form_validation->set_rules("description","descripton","required");
 		if($this->form_validation->run() ){
-			$data=$this->Rp_model->create($this->userId,$this->input->post());
+			$data=$this->Rp_model->create($this->userId,parent::getPostSafe());
 		}
 		echo json_encode($data);
 	}
@@ -41,15 +40,7 @@ class Rp extends RP_Parent {
 		}
 		
 	}
-	public function getCharacter($charCode){
-		$data=array();
-		$data=$this->Rp_model->getCharacter($charCode);
-		if($data['success']){
-			$this->load->model("Character_model");
-			$data['abilities']=$this->Character_model->getAbilitesFromCharCode($charCode);
-		}
-		echo json_encode($data);
-	}
+	
 	public function getRPRules($rpCode){
 		echo json_encode($this->Rp_model->getRPRulesByCode($rpCode));
 	}

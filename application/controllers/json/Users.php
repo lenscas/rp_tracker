@@ -23,7 +23,13 @@ class Users extends User_Parent {
 		$success=false;
 		parent::redirectLoggedIn();
 		if($this->input->post()){
-			$error=$this->Users_model->register($this->input->post());
+			$data=parent::getPostSafe(true);
+			if($data['safe']){
+				$error=$this->Users_model->register($data['clean']);
+			} else {
+				echo json_encode(array("error"=>"XSS detected. Please don't use html tags in your username.'", "success"=>false));
+				die;
+			}
 		} else {
 			$error="No post data found";
 		}

@@ -22,7 +22,7 @@
 		<button class="btn btn-success pull-right" id="joinButton" style="<?php echo $joinStyle ?>">Join</button>
 		<button class="btn btn-success pull-right" style="<?php echo $charStyle ?>" id="characterButton">Create Character</button>
 	</div>
-	<div class="col-md-8" id="description"></div>
+	<div class="col-md-8" ><pre id="description"></pre></div>
 	<div class="col-md-4">
 		<div class="row" id="info">
 			<table>
