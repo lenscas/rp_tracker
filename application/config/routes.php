@@ -55,7 +55,7 @@ $route['translate_uri_dashes'] = FALSE;
 //browser
 	//user
 		//user creation
-		$route['register']	=	"browser/Users/register";
+		$route['register']			=	"browser/Users/register";
 		$route['register/success']	=	"browser/Users/showMade";
 		$route["activation/(:any)"]	=	"browser/Users/activate/$1";
 		//user logout/in
@@ -72,18 +72,19 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['rp/list']					=	"browser/Rp/showAllRPs";
 		$route['rp/details/(:any)']			=	"browser/Rp/getRpDetails/$1";
 	//character 
-		$route['rp/character/create/(:any)']=	"browser/Rp/createChar/$1";
-		$route['rp/character/view/(:any)']	=	"browser/Rp/character/$1";
+		$route['rp/character/create/(:any)']=	"browser/Char/createChar/$1";
+		$route['rp/character/view/(:any)']	=	"browser/Char/character/$1";
 //ajax
 	//user
 		$route["ajax/login"]			=	"json/Users/login";
 		$route['ajax/register']			=	"json/Users/register";
 		$route['ajax/profile/(:any)']	=	"json/Users/profile/$1";
+	//characters
 		$route['ajax/character/(:any)']	=	"json/Character/show/$1/false";
 	//rp
 		$route["ajax/rp/create"]				=	"json/Rp/create";
 		$route['ajax/rp/getAllRPs']				=	"json/Rp/listAllRPs";
 		$route['ajax/rp/details/(:any)']		=	"json/Rp/getRP/$1";
 		$route['ajax/rp/join/(:any)']			=	"json/Rp/join/$1";
-		$route['ajax/rp/getCharacter/(:any)']	=	"json/Rp/getCharacter/$1";
+		$route['ajax/rp/getCharacter/(:any)']	=	"json/Char/getCharacter/$1";
 		$route['ajax/rp/getRules/(:any)']		=	"json/Rp/getRPRules/$1";

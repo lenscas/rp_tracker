@@ -45,7 +45,8 @@
 		var isPrivate	=	$("#isPrivate").is(':checked')
 		var maxStat		=	$("#startingStatAmount").val()
 		var maxAbilty	=	$("#startingAbilityAmount").val()
-		var description	=	tinyMCE.get("description").getContent()
+		var description	=	$("#description").bbcode()
+		//console.log(description);
 		$.ajax({
 		url		:	"<?php echo base_url("/index.php/ajax/rp/create") ?>",
 		dataType:	"json",
@@ -63,8 +64,13 @@
 			}
 		})
 	})
+$(document).ready(function() {
+	$("#description").wysibb(EDITOR_DEFAULT_CONFIG);
+});
+/*
+commented out due to removing tiny	
 tinymce.init({
 	selector: 'textarea'  // change this value according to your HTML
 });
-
+*/
 </script>
