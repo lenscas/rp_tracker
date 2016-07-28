@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jul 28, 2016 at 02:05 PM
+-- Generation Time: Jul 28, 2016 at 03:58 PM
 -- Server version: 5.5.50-0+deb8u1
 -- PHP Version: 5.6.23-0+deb8u1
 
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `abilities` (
   `description` longtext NOT NULL,
   `charId` int(11) NOT NULL,
   `countDown` int(11) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Truncate table before insert `abilities`
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `characters` (
   `code` varchar(7) NOT NULL,
   `isMinion` tinyint(1) NOT NULL,
   `notes` longtext
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Truncate table before insert `characters`
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `modifiers` (
   `name` varchar(255) NOT NULL,
   `value` int(11) NOT NULL,
   `countDown` int(11) DEFAULT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Truncate table before insert `modifiers`
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `players` (
   `userId` varchar(255) NOT NULL,
   `rpId` int(11) NOT NULL,
   `is_GM` int(11) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Truncate table before insert `players`
@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS `rolePlays` (
   `description` longtext NOT NULL,
   `creator` varchar(255) NOT NULL,
   `statSheetId` int(11) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Truncate table before insert `rolePlays`
@@ -308,7 +308,7 @@ TRUNCATE TABLE `users`;
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `hasActivated`, `activationCode`) VALUES
-('99b4cfd00e2e6acfdef8d73a4be47193f57c2f21', 'root', 'CYnWDbrGJPDj+E6hwMgbgLuqlIuS6VuyDi6FCwQEtWWENzgxYZQn1en4RYCEvHy88/Vc6LMOsCitAiF7xCuZ6w==', 'lenscas@localhost', 1, '');
+('68026ea182128245c9fe6aeb549578853db0a166', 'root', '$2y$10$rRhH8R1Bf2LAkssQKcAYdu3alGFOG79DQ5oXWI5B96xqEn3bqd6nm', '', 1, '');
 
 --
 -- Indexes for dumped tables
@@ -388,12 +388,12 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `abilities`
 --
 ALTER TABLE `abilities`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=25;
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=9;
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `includedStats`
 --
@@ -403,17 +403,17 @@ MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'This table is deprecated. M
 -- AUTO_INCREMENT for table `modifiers`
 --
 ALTER TABLE `modifiers`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=22;
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `players`
 --
 ALTER TABLE `players`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `rolePlays`
 --
 ALTER TABLE `rolePlays`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `stats`
 --
