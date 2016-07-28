@@ -16,6 +16,12 @@ class Users_model extends MY_Model {
 		}
 		
 	}
+	
+	// Takes a plaintext password and a random salt string, combines them, and hashes the result
+	public function saltAndHash($password, $saltString) {
+		return sha3($password . $saltString);	//TODO: Replace sha3() with an atual call to the hash function
+	}
+	
 	public function logIn($data){
 		//need to check later why I didn't use the post check libary or whatever it is called
 		if($data["username"]!="" && $data['password']!=""){
@@ -27,8 +33,8 @@ class Users_model extends MY_Model {
 			$result= $query->row_array();
 			
 			if($result){
-				$this->load->library("encrypt");
-				if($data['password']==$this->encrypt->decode($result["password"])){
+				//$this->load->library("encrypt");
+				if($this -> saltAndHash($data['password'], $result["passwordSalt"]) == $result["password"])){
 					$this->session->set_userdata("userId",$result['id']);
 					return false;
 				} else {
@@ -62,10 +68,12 @@ class Users_model extends MY_Model {
 		$id=parent::generateId("users");
 		$this->load->helper("string");
 		$randomActivationString=random_string("alpha", 32);
-		$this->load->library('encrypt');
+		$passwordSalt = random_string("alpha", 32); //Might be better to not restrict this to an alphanumeric string (assuming that the database can handle random characters), but I dunno how to tell PHP how to do that
+		//$this->load->library('encrypt');
 		$insertData=array("id"=>$id,
 			"username"=>$data['username'],
-			"password"=>$this->encrypt->encode($data["password"]),
+			"password"=>$this->saltAndHash($data["password"], $passwordSalt),
+			"passwordSalt" => $passwordSalt,
 			"email"=>$data['mail'],
 			"activationCode"=>$randomActivationString,
 			"hasActivated"=>0
