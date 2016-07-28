@@ -2,13 +2,13 @@
 class Users_model extends MY_Model {
 	//this is used to get the user data by its id,username or email. 
 	//Technically other ways can also be done but as it will only return one row it may have unexpected results that way.
-	private function getUserByTable($name,$table){
+	/*private function getUserByTable($name,$table){
 		$this->db->select("*");
 		$this->db->from("users");
 		$this->db->where($table,$name);
 		$query=$this->db->get();
 		return $query->row_array();
-	}
+	}*/
 	public function getUserIdByName($userName){
 		$user=$this->db->get_where("users",array("username"=>$userName),1)->row();
 		if($user){
@@ -23,57 +23,48 @@ class Users_model extends MY_Model {
 	}
 	
 	public function logIn($data){
-		//need to check later why I didn't use the post check libary or whatever it is called
-		if($data["username"]!="" && $data['password']!=""){
-			$this->db->select("*");
-			$this->db->from("users");
-			$this->db->where("username",$data["username"]);
-			$this->db->where("hasActivated",1);
-			$query=$this->db->get();
-			$result= $query->row_array();
-			
-			if($result){
-				//$this->load->library("encrypt");
-				if($this -> saltAndHash($data['password'], $result["passwordSalt"]) == $result["password"])){
+		$result=$this->db->select("*")
+				->from("users")
+				->where("username",$data["username"])
+				->get()
+				->row_array();
+		if($result){
+			if($result['hasActivated']==1){
+				if(password_verify($data['password'],$result['password'])){
 					$this->session->set_userdata("userId",$result['id']);
 					return false;
 				} else {
 					return "The name or password did not match";
 				}
 			} else {
-				return "The name or password did not match";
+				return "The user exist but is not yet activated.";
 			}
 		} else {
-			return "One or more of the required fields where empty";
+			return "The name or password did not match";
 		}
 	}
 	public function register($data){
-		if(count($data)<4){
-			return "Some fields did not have a value. !";
-		}
-		if($data['password']!=$data["passwordCheck"]){
-			return "The passwords don't match.'";
-		}
-		foreach($data as $key=>$value){
-			if(!$value){
-				return "Some fields did not have a value.";
+		$user	=	$this->db->select("*")
+					->from("users")
+					->where("username",$data["username"])
+					->or_where("email",$data['mail'])
+					->get()
+					->row_array();
+		if($user){
+			if($user['email']==$data['mail']){
+				return "This email is already in use, please choose a different one.";
 			}
-		}
-		if($this->getUserByTable($data['username'],"username")){
-			return "This username is already taken";
-		}
-		if($this->getUserByTable($data['mail'],"email")){
-			return "This email is already in use, please choose a different one";
+			if($user['username']==$data['username']){
+				return "This username is already in use, please choose a different one.";
+			}
 		}
 		$id=parent::generateId("users");
 		$this->load->helper("string");
 		$randomActivationString=random_string("alpha", 32);
-		$passwordSalt = random_string("alpha", 32); //Might be better to not restrict this to an alphanumeric string (assuming that the database can handle random characters), but I dunno how to tell PHP how to do that
 		//$this->load->library('encrypt');
 		$insertData=array("id"=>$id,
 			"username"=>$data['username'],
-			"password"=>$this->saltAndHash($data["password"], $passwordSalt),
-			"passwordSalt" => $passwordSalt,
+			"password"=>password_hash($data['password'],PASSWORD_DEFAULT),
 			"email"=>$data['mail'],
 			"activationCode"=>$randomActivationString,
 			"hasActivated"=>0
@@ -91,10 +82,14 @@ class Users_model extends MY_Model {
 	//activates the user so he can play. As that is what everyone wants to do today.
 	public function activate($activateString){
 		//get the user by its activation code
-		$user=$this->getUserByTable($activateString,"activationCode");
+		$user	=	$this->db->select("id")
+					->from("users")
+					->where("activationCode",$activateString)
+					->get()
+					->row_array();
 		//check if there is one, return the error string if it was not found
 		if(!$user){
-			return "The given activation string doesn't exist'";
+			return "The given activation string doesn't exist. It may be that the user is already acctivated.";
 		}
 		//user was found, so lets be nice and activate him/her :)
 		$this->db->where($user);
@@ -105,13 +100,6 @@ class Users_model extends MY_Model {
 	public function getUserData($userId){
 		$data=array();
 		$data['profile']	=	$this->getUserByTable($userId,"id");
-		$data['graveyard']	=	$this->db->select("characters.id, characters.characterName as name,species.basePicture")
-			->from("characters")
-			->where("isAlive",0)
-			->where("userId",$userId)
-			->join("species","species.id=characters.speciesId")
-			->get()
-			->result_array();
 		return $data;
 	}
 

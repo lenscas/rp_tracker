@@ -9,8 +9,13 @@ class Users extends User_Parent {
 	public function login(){
 		parent::redirectLoggedIn();
 		$error;
-		if($this->input->post()){
-			$error=$this->Users_model->login($this->input->post());
+		$this->load->library('form_validation');
+		$this->form_validation->set_rules("username","username","required");
+		$this->form_validation->set_rules("password","password","required");
+		if($this->form_validation->run()){
+			$error=$this->Users_model->login(parent::getPostSafe());
+		} else {
+			$error="One or more fields are not filled in.";
 		}
 		if(!$error){
 			echo json_encode(array("loggedIn"=>true));
@@ -19,19 +24,28 @@ class Users extends User_Parent {
 		}
 	}
 	public function register(){
+		parent::redirectLoggedIn();
 		$error;
 		$success=false;
-		parent::redirectLoggedIn();
-		if($this->input->post()){
+		$this->load->library('form_validation');
+		$this->form_validation->set_rules("username","username","required");
+		$this->form_validation->set_rules("password","password","required");
+		$this->form_validation->set_rules("passwordCheck","passwordCheck","required");
+		$this->form_validation->set_rules("mail","email","required");
+		if($this->form_validation->run()){
 			$data=parent::getPostSafe(true);
 			if($data['safe']){
-				$error=$this->Users_model->register($data['clean']);
+				if($data['clean']['password']==$data['clean']['passwordCheck']){
+					$error=$this->Users_model->register($data['clean']);
+				} else {
+					$error="Passwords don't match.";
+				}
 			} else {
-				echo json_encode(array("error"=>"XSS detected. Please don't use html tags in your username.'", "success"=>false));
+				echo json_encode(array("error"=>"XSS detected. Please don't use html tags in your username, password or email.'", "success"=>false));
 				die;
 			}
 		} else {
-			$error="No post data found";
+			$error="One or more fields are not filled in correctly.";
 		}
 		if(!$error){
 			$success=true;
