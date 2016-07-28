@@ -15,6 +15,14 @@ class Char extends RP_Parent {
 		}
 		echo json_encode($data);
 	}
+	public function getCharList($rpCode){
+		$data=$this->Character_model->getCharListByRPCode($rpCode);
+		echo json_encode($data);
+	}
+	public function getAbilitiesByCharInRP($rpCode){
+		$data=$this->Character_model->getAbilitiesByCharInRP($rpCode);
+		echo json_encode($data);
+	}
 
 
 }

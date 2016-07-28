@@ -13,6 +13,7 @@ class Rp extends RP_Parent {
 		$this->form_validation->set_rules("startingStatAmount","startingStatAmount","required|integer");
 		$this->form_validation->set_rules("startingAbilityAmount","startingAbilityAmount","required|integer");
 		$this->form_validation->set_rules("description","descripton","required");
+		$this->form_validation->set_rules("statSheetCode","statSheetCode","required");
 		if($this->form_validation->run() ){
 			$data=$this->Rp_model->create($this->userId,parent::getPostSafe());
 		}
@@ -41,7 +42,10 @@ class Rp extends RP_Parent {
 		
 	}
 	
-	public function getRPRules($rpCode){
-		echo json_encode($this->Rp_model->getRPRulesByCode($rpCode));
+	public function getRPConfig($rpCode){
+		echo json_encode($this->Rp_model->getRPConfigByCode($rpCode));
+	}
+	public function getAllStatSheets(){
+		echo json_encode($this->Rp_model->getAllStatSheets());
 	}
 }

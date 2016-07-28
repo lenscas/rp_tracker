@@ -38,9 +38,16 @@
 					<td>Stats: </td>
 					<td id="stats"></td>
 				</tr>
+				<tr>
+					<td>Sheet</td>
+					<td id="sheet"></td>
+				</tr>
 			</table>
 		</div>
-		<div class="row" id="characters"></div>
+		<div class="row">
+			<h3><a href="<?php echo base_url("index.php/rp/character/list/".$rpCode )?>">All characters</a></h3>
+			<div id="characters"></div>
+		</div>
 		
 	</div>
 </div>
@@ -55,6 +62,7 @@
 		$("#creator").html(data.username)
 		$("#abilities").html(data.startingAbilityAmount)
 		$("#stats").html(data.startingStatAmount)
+		$("#sheet").html(data.statSheetName)
 		var charRows=$("#characters")
 		if(data.characters){
 			$.each(data.characters,function(key,value){
