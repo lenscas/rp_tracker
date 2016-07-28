@@ -1,4 +1,10 @@
 <div id="templates" style="display:none">
+	<div class="statTemplate">
+		<div class="input-group">
+			<span class="input-group-addon statName"></span>
+			<input type="text" class="stat form-control statInput">
+		</div>
+	</div>
 	<div class="ability">
 		<h4 class="abilityCount">Ability 1</h4>
 		<div class="input-group">
@@ -60,34 +66,7 @@
 				<textarea id="personality" name="personality"></textarea>
 			</div>
 			<div id="screen4" style="display:none">
-				<div class="input-group">
-					<span class="input-group-addon">Health</span>
-					<input type="text" id="health" name="health" class="stat form-control" placeholder="health">
-				</div>
-				<div class="input-group">
-					<span class="input-group-addon">Armour</span>
-					<input type="text" id="armour" name="armour" class="stat form-control" placeholder="armour">
-				</div>
-				<div class="input-group">
-					<span class="input-group-addon">Agility</span>
-					<input type="text" id=:agility name="agility" class="stat form-control" placeholder="agility">
-				</div>
-				<div class="input-group">
-					<span class="input-group-addon">Accuracy</span>
-					<input type="text" id="accuracy" name="accuracy" class="stat form-control" placeholder="Accuracy">
-				</div>
-				<div class="input-group">
-					<span class="input-group-addon">Strength</span>
-					<input type="text" id="strenght" name="strength" class="stat form-control" placeholder="Strength">
-				</div>
-				<div class="input-group">
-					<span class="input-group-addon">Magical Skill</span>
-					<input type="text" id="magicalSkill" name="magicalSkill" class="stat form-control" placeholder="Magical skill">
-				</div>
-				<div class="input-group">
-					<span class="input-group-addon">Magical Defence</span>
-					<input type="text" id="magicalDefence" name="magicalDefence" class="stat form-control" placeholder="Magical Defence">
-				</div>
+				<div id="statContainer"></div>
 			</div>
 			<div id="screen5" style="display:none">
 				<h3>Abilities</h3>
@@ -121,13 +100,13 @@ function showError(error){
 	$("#errorMessage").empty().html(error)
 }
 $.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/rp/getRules/".$rpCode) ?>",
+	url		:	"<?php echo base_url("index.php/ajax/rp/getConfig/".$rpCode) ?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){
-		CONFIG=data;
+		CONFIG=data.data;
 		var template=$("#templates").find(".ability")
-		for(times=1;times<=CONFIG.startingAbilityAmount;times++){
+		for(times=1;times<=CONFIG.max.startingAbilityAmount;times++){
 			$(template).find(".abilityCount").empty().html("Ability "+times)
 			$(template).find(".abilityName").attr("name","abilities[ability"+times+"][name]")
 			$(template).find(".abilityCooldown").attr("name","abilities[ability"+times+"][cooldown]")
@@ -135,10 +114,18 @@ $.ajax({
 			$(template).clone().appendTo($("#abilitiesContainer"));
 		}
 		$("textarea").wysibb(EDITOR_DEFAULT_CONFIG);
-		/*tinymce.init({
-			selector: 'textarea'  // change this value according to your HTML
-		});*/
-		 
+		//make the area for users to fill in their stats for their characters
+		template	=	$("#templates").find(".statTemplate")
+		console.log(CONFIG.statSheet)
+		$.each(CONFIG.statSheet,function(key,value){
+			$(template).find(".statName").empty().html(value.name)
+			var inputField=$(template).find(".statInput")
+			$(inputField).attr("placeholder",value.name)
+			$(inputField).attr("name","stats["+value.id+"]")
+			$(template).clone().appendTo($("#statContainer"))
+		})
+		$(template).remove()
+		
 	}
 })
 $(".pageSwap").on("click",function(event){
@@ -211,8 +198,9 @@ $("#creatCharacter").on("click",function(event){
 		})
 	}
 	if(canPost && isNormal){
-		if(totalStatAmount!=CONFIG.startingStatAmount){
+		if(totalStatAmount!=CONFIG.max.startingStatAmount){
 			error="The amount of stats you gave does not equal to the amount your character needs";
+			console.log(totalStatAmount)
 			canPost=false
 		}
 	}

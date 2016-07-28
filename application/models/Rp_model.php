@@ -13,6 +13,13 @@ class Rp_model extends MY_Model {
 		}
 		$postData['creator']=$userId;
 		$postData['description']=parse_bbcode($postData['description']);
+		//get the id of the sheet used using the given code.
+		$postData['statSheetId']=$this->db->select("id")->from("statSheets")->where("code",$postData['statSheetCode'])->get()->row()->id;
+		if($postData['statSheetId']){
+			unset($postData['statSheetCode']);
+		}else {
+			return array("success"=>false,"error"=>"The selected statsheet does not exist");
+		}
 		$this->db->insert("rolePlays",$postData);
 		$rpId=$this->db->insert_id();
 		$this->joinRp($userId,$rpId,1);
@@ -39,9 +46,19 @@ class Rp_model extends MY_Model {
 		
 	}
 	public function getRPByCode($rpCode){
-		return	$this->db->select("*")
+		return	$this->db->select("rolePlays.id,
+		rolePlays.name,
+		rolePlays.code,
+		rolePlays.isPrivate,
+		rolePlays.startingStatAmount,
+		rolePlays.startingAbilityAmount,
+		rolePlays.description,
+		rolePlays.creator,
+		rolePlays.statSheetId,
+		statSheets.name AS statSheetName")
 				->from("rolePlays")
-				->where("code",$rpCode)
+				->where("rolePlays.code",$rpCode)
+				->join("statSheets","statSheets.id=rolePlays.statSheetId")
 				->get()
 				->row();
 	}
@@ -71,7 +88,7 @@ class Rp_model extends MY_Model {
 								->where("isMinion",0)
 								->get()
 								->result_array();
-			$rp->username		=	$this->db->select("users.username")
+			$rp->username	=	$this->db->select("users.username")
 								->from("users")
 								->where("id",$rp->creator)
 								->get()
@@ -81,12 +98,22 @@ class Rp_model extends MY_Model {
 		
 		return $rp;
 	}
-	public function getRPRulesByCode($rpCode){
-		return	$this->db->select("startingStatAmount,startingAbilityAmount")
-				->from("rolePlays")
-				->where("code",$rpCode)
-				->get()
-				->row_array();
+	public function getRPConfigByCode($rpCode){
+		$rp=$this->getRPByCode($rpCode);
+		if($rp){
+			$config=array();
+			$config['max']=	array("startingStatAmount"=>$rp->startingStatAmount,"startingAbilityAmount"=>$rp->startingAbilityAmount);
+			$config['statSheet']	=	$this->db->select("statsInSheet.id,statsInSheet.name,statsInSheet.description, statRoles.description AS fallbackDescription")
+										->from("statsInSheet")
+										->join("statRoles","statRoles.id=statsInSheet.roleId")
+										->where("statSheetId",$rp->statSheetId)
+										->get()
+										->result();
+			return array ("success"=>true,"data"=>$config);
+		}
+		return array("success"=>false,"error"=>"The rp does not exist");
 	}
-
+	public function getAllStatSheets(){
+		return $this->db->select("code,name,description")->from("statSheets")->get()->result_array();
+	}
 }

@@ -17,6 +17,10 @@
 					<span class="input-group-addon">Starting max amount abilities</span>
 					<input type="text" id="startingAbilityAmount" class="form-control" placeholder="Starting max amount abilities">
 				</div>
+				<div class="input-group">
+					<span class="input-group-addon">Stat Sheets</span>
+					<select type="text" id="statSheetCode" class="form-control"></select>
+				</div>
 				<h3>Description</h3>
 				<textarea id="description"></textarea>
 				<div class="input-group" style="width:100%">
@@ -39,22 +43,36 @@
 	</div>
 </div>
 <script>
+	//load all available statsheets
+	$.ajax({
+	url		:	"<?php echo base_url("index.php/ajax/rp/getAllStatSheets")?>",
+	method	:	"GET",
+	dataType:	"json",
+	success	:	function(data){
+		var select=$("#statSheetCode")
+		$.each(data,function(key,value){
+			$(select).append('<option value="'+ value.code + '">'+value.name+'</option>')
+		})
+	}
+	})
 	$("#create").on("click",function(event){
 		event.preventDefault()
 		var name		=	$("#name").val()
 		var isPrivate	=	$("#isPrivate").is(':checked')
 		var maxStat		=	$("#startingStatAmount").val()
 		var maxAbilty	=	$("#startingAbilityAmount").val()
+		var statSheetCode	=	$("#statSheetCode").val()
 		var description	=	$("#description").bbcode()
 		//console.log(description);
 		$.ajax({
 		url		:	"<?php echo base_url("/index.php/ajax/rp/create") ?>",
 		dataType:	"json",
 		method	:	"POST",
-		data	:	{name			:	name,
+		data	:	{name				:	name,
 				isPrivate				:	isPrivate,
 				startingStatAmount		:	maxStat,
 				startingAbilityAmount	:	maxAbilty,
+				statSheetCode			:	statSheetCode,
 				description				:	description
 			},
 		success	:	function(data){
