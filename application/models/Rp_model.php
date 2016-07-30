@@ -98,7 +98,7 @@ class Rp_model extends MY_Model {
 		
 		return $rp;
 	}
-	public function getRPConfigByCode($rpCode){
+	public function getRPConfigByCode($rpCode,$userId=false){
 		$rp=$this->getRPByCode($rpCode);
 		if($rp){
 			$config=array();
@@ -109,11 +109,38 @@ class Rp_model extends MY_Model {
 										->where("statSheetId",$rp->statSheetId)
 										->get()
 										->result();
+			if($userId){
+				$id	=	$this->db->select("id")
+									->from("players")
+									->where("rpId",$rp->id)
+									->where("is_GM",1)
+									->get()
+									->row();
+				if($id){
+					$config['isGM']=true;
+				}else{
+					$config['isGM']=false;
+				}
+			}
 			return array ("success"=>true,"data"=>$config);
 		}
 		return array("success"=>false,"error"=>"The rp does not exist");
 	}
 	public function getAllStatSheets(){
 		return $this->db->select("code,name,description")->from("statSheets")->get()->result_array();
+	}
+	public function checkIfGM($userId,$rpId){
+		$result	=	$this->db->select("is_GM")
+					->from("players")
+					->where("users.id",$userId)
+					->where("is_GM",1)
+					->join("users","users.id=players.userId")
+					->get()
+					->row();
+		if($result){
+			return true;
+		} else {
+			return false;
+		}
 	}
 }
