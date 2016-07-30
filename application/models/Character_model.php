@@ -87,7 +87,7 @@ class Character_model extends MY_model{
 		->update("characters");
 		return array("success"=>true);
 	}
-	public function getCharacter($charCode){
+	public function getCharacter($charCode,$simple=false){
 		$char	=	$this->db->select("	characters.id,
 										characters.playerId,
 										characters.name,
@@ -104,6 +104,9 @@ class Character_model extends MY_model{
 					->where("code",$charCode)
 					->get()
 					->row_array();
+		if($simple){
+			return $char;
+		}
 		if($char){
 			$this->load->model("Modifiers_model");
 			$char['stats']=$this->Modifiers_model->getStatsFromChar($char['id']);
@@ -147,6 +150,19 @@ class Character_model extends MY_model{
 				->order_by("characters.name")
 				->get()
 				->result_array();
+	}
+	public function getRPIdByChar($charCode=false,$charId=false){
+		$this->db->select("rolePlays.id")
+		->from("characters");
+		if($charCode){
+			$this->db->where("characters.code",$charCode);
+		} else {
+			$this->db->where("characters.id",$charId);
+		}
+		return	$this->db->join("players","players.id=characters.playerId")
+				->join("rolePlays","rolePlays.id=players.rpId")
+				->get()
+				->row();
 	}
 	
 }

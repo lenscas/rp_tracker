@@ -49,7 +49,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Examples:	my-controller/index	-> my_controller/index
 |		my-controller/my-method	-> my_controller/my_method
 */
-$route['default_controller'] = 'welcome';
+$route['default_controller'] = 'browser/Users/login';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 //browser
@@ -92,4 +92,7 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['ajax/rp/getCharacter/(:any)']	=	"json/Char/getCharacter/$1";
 		$route['ajax/rp/getConfig/(:any)']		=	"json/Rp/getRPConfig/$1";
 		$route['ajax/rp/getAllStatSheets']		=	"json/Rp/getAllStatSheets";
-		
+	//modifiers
+		$route['ajax/modifiers/update/(:any)']	=	"json/Modifiers/updateModifier/$1";
+		$route['ajax/modifiers/create/(:any)']	=	"json/Modifiers/insertModifier/$1";
+		$route['ajax/modifiers/delete/(:any)']	=	"json/Modifiers/deleteModifier/$1";

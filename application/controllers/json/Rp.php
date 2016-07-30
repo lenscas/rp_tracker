@@ -43,7 +43,7 @@ class Rp extends RP_Parent {
 	}
 	
 	public function getRPConfig($rpCode){
-		echo json_encode($this->Rp_model->getRPConfigByCode($rpCode));
+		echo json_encode($this->Rp_model->getRPConfigByCode($rpCode,$this->userId));
 	}
 	public function getAllStatSheets(){
 		echo json_encode($this->Rp_model->getAllStatSheets());

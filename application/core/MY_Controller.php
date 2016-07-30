@@ -1,43 +1,4 @@
 <?php
-class Foo
-{
-    public function __call($method, $args)
-    {
-        if (isset($this->$method)) {
-            $func = $this->$method;
-            return call_user_func_array($func, $args);
-        }
-    }
-}
-class Admin_parent extends User_Parent {
-	public $currentPlayer="oponent";
-	public $testFunction;
-	public function __construct(){
-		parent::__construct();
-	}
-	public function test(){
-		/*$player="oponent";
-		$str="dealDamage(\$this,10);;";
-		function dealDamage($object,$damage){
-			echo "You did ".$damage." damage to ".$object->currentPlayer;
-		}
-		eval($str);*/
-		/*function tester(){
-			return function(){
-				echo "bla";
-			};
-		}
-		$test=tester();
-		$test();
-		*/
-		$that=$this;
-		$test = function() use ($that){
-			echo $that->currentPlayer;
-		};
-		$test();
-	}
-	
-}
 class RP_Parent extends User_Parent {
 	public $userId;
 	public function __construct() {

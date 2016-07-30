@@ -8,6 +8,7 @@ class Modifiers_model extends MY_model {
 		return	$this->db->select("modifiers.name,
 				modifiers.value,
 				modifiers.countDown,
+				modifiers.id AS modifiersId,
 				statsInSheet.name AS statName,
 				statsInSheet.id as statId,
 				characters.code")
@@ -41,6 +42,33 @@ class Modifiers_model extends MY_model {
 				->where("modifiers.charId",$charId)
 				->get()
 				->result_array();
+	}
+	public function updateModifier($modId,$data){
+		$this->db->where("id",$modId)->update("modifiers",$data);
+	}
+	public function insertModifier($data,$charId=false){
+		if($charId){
+			$data['charId']=$charId;
+		}
+		$this->db->insert("modifiers",$data);
+	}
+	public function getRPfromMod($modId){
+		return	$this->db->select("rolePlays.id")
+				->from("modifiers")
+				->where("modifiers.id",$modId)
+				->join("characters","modifiers.charId=characters.id")
+				->join("players","characters.playerId=players.id")
+				->join("rolePlays","rolePlays.id=players.rpId")
+				->get()
+				->row();
+	}
+	public function delete($modId,$noBase=true){
+		$this->db->where("id",$modId);
+		if($noBase){
+			$this->db->where("isBase",0);
+		}
+		$this->db->delete("modifiers");
+		return	$this->db->affected_rows(); 
 	}
 
 }
