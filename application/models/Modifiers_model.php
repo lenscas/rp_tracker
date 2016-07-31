@@ -51,6 +51,7 @@ class Modifiers_model extends MY_model {
 			$data['charId']=$charId;
 		}
 		$this->db->insert("modifiers",$data);
+		return	$this->db->insert_id();
 	}
 	public function getRPfromMod($modId){
 		return	$this->db->select("rolePlays.id")

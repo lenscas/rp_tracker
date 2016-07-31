@@ -271,6 +271,7 @@ $("#modalModifierBody").on("click","#createModfiers",function(event){
 			//database is updated, lets update our local object
 			if(returnData.success){
 				data.code	=	charCode
+				data.modifiersId		=	returnData.id
 				console.log(CHAR_LIST[charCode]['stats'])
 				CHAR_LIST[charCode]["stats"][data["statId"]].push(data)
 				//update both the modal and the correct cell. We update the modal as a new input for the creation of a modifier needs to appear and this modifier needs to get an update button
@@ -282,6 +283,7 @@ $("#modalModifierBody").on("click","#createModfiers",function(event){
 })
 $("#modalModifierBody").on("click",".deleteModifier",function(event){
 	event.preventDefault()
+	//some stuff we need later to update the totals
 	var	charCode	=	$(this).parents("tr.modalRow").data("char-code");
 	var	statId		=	$(this).parents("tbody").data("stat-id")
 	var	modId		=	$(this).data("mod-id")
@@ -293,9 +295,8 @@ $("#modalModifierBody").on("click",".deleteModifier",function(event){
 		dataType:	"json",
 		success	:	function(data){
 			if(data.success){
-				console.log(CHAR_LIST[charCode]['stats'][statId][modKey])
+				//it is updated on the database, lets update it locally
 				CHAR_LIST[charCode]['stats'][statId].splice(modKey,1)
-				console.log(CHAR_LIST[charCode]['stats'][statId])
 				updateStatCell(CHAR_LIST[charCode]['stats'][statId],"cell"+charCode+statId)
 				updateModal(CHAR_LIST[charCode]['stats'][statId],statId,charCode)
 			}

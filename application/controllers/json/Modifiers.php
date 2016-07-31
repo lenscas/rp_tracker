@@ -28,8 +28,8 @@ class Modifiers extends RP_Parent {
 			$this->load->model("Rp_model");
 			if($this->Rp_model->checkIfGM($this->userId,$rpId)){
 				$character=$this->Character_model->getCharacter($charCode,true);
-				$this->Modifiers_model->insertModifier(parent::getPostSafe(),$character['id']);
-				echo json_encode(array("success"=>true));
+				$modId=$this->Modifiers_model->insertModifier(parent::getPostSafe(),$character['id']);
+				echo json_encode(array("success"=>true,"id"=>$modId));
 			} else {
 				echo json_encode(array("success"=>false,"error"=>"You don't have permission to create this.'"));
 			}
