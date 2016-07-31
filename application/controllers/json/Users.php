@@ -52,7 +52,10 @@ class Users extends User_Parent {
 		}
 		echo json_encode(array("error"=>$error,"success"=>$success));
 	}
-	public function profile($userId){
+	public function profile($userId=false){
+		if(! $userId){
+			$userId	=	parent::getIdForced();
+		}
 		echo json_encode($this->Users_model->getUserData($userId));
 	}
 

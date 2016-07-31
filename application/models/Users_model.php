@@ -99,7 +99,11 @@ class Users_model extends MY_Model {
 	
 	public function getUserData($userId){
 		$data=array();
-		$data['profile']	=	$this->db->select("username")->from("users")->get()->row_array();
+		$data['profile']	=	$this->db->select("username")
+								->from("users")
+								->where("id",$userId)
+								->get()
+								->row_array();
 		return $data;
 	}
 
