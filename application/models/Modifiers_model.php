@@ -71,5 +71,44 @@ class Modifiers_model extends MY_model {
 		$this->db->delete("modifiers");
 		return	$this->db->affected_rows(); 
 	}
+	public function getTotalStat($charId,$statRole,$isMultipleChar=false,$byCode=false){
+		//decides if we need to use the where using the character code or its id.
+		if($byCode){
+			$collomName="characters.code";
+		}else {
+			$collomName="characters.id";
+		}
+		//NOTE!!!
+		//Thanks to the false the Select statement !WON'T! be safe for sql injections.
+		//This is needed to get the SUM() working
+		//DO NOT! NO MATTER WHAT REASON put user input into the select statement!
+		$this->db->select("characters.id, SUM(modifiers.value) AS ".$statRole,false)
+		//join every table that is needed so we can select on its role.
+		->from("characters")
+		->join("modifiers","modifiers.charId=characters.id")
+		->join("statsInSheet","modifiers.statId=statsInSheet.id")
+		->join("statRoles","statsInSheet.roleId=statRoles.id");
+		//check if $charId contains multiple id's. If it does we loop over it else 1 where is enough
+		if($isMultipleChar){
+			//we put the wheres all in a group else it will break, horrible 
+			$this->db->group_start();
+			foreach($charId as $key=>$value){
+				$this->db->or_where($collomName,$value);
+			}
+			$this->db->group_end();
+		}else {
+			$this->db->where($collomName,$value);
+		}
+		//now we get the query. 
+		$query=	$this->db->where("statRoles.role",$statRole)
+				->group_by("characters.id")
+				->get();
+		//if we have multiple id's we return 1 row, else we return multiple.
+		if($isMultipleChar){
+			return $query->result_array();
+		}else {
+			return $query->row_array();
+		}
+	}
 
 }

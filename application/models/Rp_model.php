@@ -110,17 +110,7 @@ class Rp_model extends MY_Model {
 										->get()
 										->result();
 			if($userId){
-				$id	=	$this->db->select("id")
-									->from("players")
-									->where("rpId",$rp->id)
-									->where("is_GM",1)
-									->get()
-									->row();
-				if($id){
-					$config['isGM']=true;
-				}else{
-					$config['isGM']=false;
-				}
+				$config['isGM']=$this->checkIfGM($userId,$rp->id);
 			}
 			return array ("success"=>true,"data"=>$config);
 		}

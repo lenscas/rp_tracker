@@ -70,6 +70,56 @@
 			</table>
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="row">
+				<div class="col-md-12">
+					<h1>All battles <a class="btn btn-success pull-right" href="<?php echo base_url("index.php/battle/create/".$rpCode) ?>">Create Battle</a></h1>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<div id="battleName">
+						<h1><a href="https://titanpad.com/caitfeardorcha">Some test battle</a><a class="btn btn-success pull-right" href="<?php echo base_url("index.php/battle/create") ?>">Manage Battle</a></h1>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<table class="table table-hover" id="testTable">
+						<thead >
+							<tr>
+								<th>Name</th>
+								<th>Health</th>
+								<th>Order</th>
+								<th>Actions <button type="button" class="btn btn-success pull-right">End turn</button></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Nahiri</td>
+								<td>6</td>
+								<td>1</td>
+								<td> <button type="button" class="btn btn-danger">Remove</button></td>
+							</tr>
+							<tr class="bg-success">
+								<td >Some woman</td>
+								<td>5</td>
+								<td>2</td>
+								<td><button type="button" class="btn btn-danger">Remove</button></td>
+							</tr>
+							<tr class="bg-danger">
+								<td >Cait</td>
+								<td>0</td>
+								<td>3</td>
+								<td> <button type="button" class="btn btn-danger">Re-join</button></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 <div id="modifierModal" class="modal fade" role="dialog">
 	<div class="modal-dialog">
@@ -99,6 +149,10 @@
 	</div>
 </div>
 <script>
+$("#testTable").DataTable({
+	"order":	[[2, "asc"]]
+
+})
 //these are used to store data that is needed everywhere. The CHAR_LIST is a list containing all the data from each character and all the modifiers on them. 
 //The RP_CONFIG is a list with all the settings of this rp.
 CHAR_LIST={}
