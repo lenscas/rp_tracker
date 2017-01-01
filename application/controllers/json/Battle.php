@@ -42,5 +42,31 @@ class Battle extends RP_Parent {
 			echo validation_errors();
 		}
 	}
+	public function getAllBattlesByRp($rpCode){
+		$battles		=	$this->Battle_model->getAllBattles($rpCode,true);
+		$charList		=	$this->Battle_model->getAllCharsInBattle($rpCode,true);
+		/*
+		print_r($charList);
+		print_r($battles); //*/
+		foreach($battles as $battleKey=>$battleValue){
+			$battles[$battleKey]['characters']=array();
+			foreach($charList as $charKey=>$charValue){
+				if($charValue['battleId']==$battleValue['id']){
+					//echo "it found a match";
+					$battles[$battleKey]['characters'][]=$charList[$charKey];
+					unset($charList[$charKey]);
+				}
+			}
+		}
+		echo json_encode($battles);
+	}
+	public function getBattle($battleId){
+		$battleData= $this->Battle_model->getBattle($battleId);
+		if($battleData){ 
+			echo json_encode($battleData);
+		} else {
+			die("battle does not exist");
+		}
+	}
 
 }

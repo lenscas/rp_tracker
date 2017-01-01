@@ -9,17 +9,11 @@ class Battle_model extends MY_model{
 		return $this->db->insert_id();
 	}
 	public function insertCharsInBattle($data){
-		echo "<pre>";
-		print_r($data);
-		echo "</pre>";
 		$this->db->insert_batch("charsInBattle",$data);
 	}
 	//$rpId this automatically puts the rpId in the new array. Usefull when preparing to insert it, not so usefull otherwise.
 	//$makeIsTurnValue this automatically makes a value that shows who's turn it is. Usefull when inserting, maybe not so much otherwise
 	public function decideOrder($charList,$makeIsTurnValue=false,$battleId=false){
-		echo "<pre>";
-		print_r($charList);
-		echo "</pre>";
 		$newList=array();
 		//generate all the rolls
 		foreach($charList as $key=>$value){
@@ -68,5 +62,79 @@ class Battle_model extends MY_model{
 		}
 		//return the new array
 		return $newList;
+	}
+	public function getAllBattles($rpId,$useRPCode){
+		$this->db->select("battle.id,battle.name,battle.link")
+		->from("battle");
+		if($useRPCode){
+			$this->db->where("rolePlays.code",$rpId);
+		}else {
+			$this->db->where("rolePlays.id",$rpId);
+		}
+		return	$this->db->join("rolePlays","rolePlays.id=battle.rpId")
+				->get()
+				->result_array();
+	}
+	public function getAllCharsInBattle($rpId,$useRPCode){
+		$this->db->select("characters.name, characters.code,charsInBattle.id, charsInBattle.battleId,charsInBattle.turnOrder,charsInBattle.isTurn")
+		->from("charsInBattle")
+		->join("characters","characters.id=charsInBattle.charId")
+		->join("battle","battle.id=charsInBattle.battleId")
+		->join("rolePlays","rolePlays.id=battle.rpId");
+		if($useRPCode){
+			$this->db->where("rolePlays.code",$rpId);
+		}else {
+			$this->db->where("rolePlays.id",$rpId);
+		}
+			$result=$this->db->group_by("charsInBattle.id")
+				->get()
+				->result_array();
+		/*
+		echo $this->db->last_query();
+		die;//*/
+		return $result;
+	}
+	public function getRPCodeByBattle($battleId){
+		$result	=	$this->db->select("rolePlays.code")
+					->from("battle")
+					->join("rolePlays","rolePlays.id=battle.rpId")
+					->where("battle.id",$battleId)
+					->get()
+					->row();
+		if($result){
+			return $result->code;
+		}
+		return null;
+	}
+	public function getAllCharsFromBattle($battleId){
+		return $this->db->select("characters.name, characters.code,charsInBattle.id, charsInBattle.battleId,charsInBattle.turnOrder,charsInBattle.isTurn")
+		->from("charsInBattle")
+		->join("characters","characters.id=charsInBattle.charId")
+		->join("battle","battle.id=charsInBattle.battleId")
+		->join("rolePlays","rolePlays.id=battle.rpId")
+		->where("battle.id",$battleId)
+		->get()
+		->result();
+	}
+	public function getBattle($battleId){
+		$battle =	$this->db->select("rolePlays.code,battle.name,battle.link")
+					->from("battle")
+					->join("rolePlays","rolePlays.id=battle.rpId")
+					->where("battle.id",$battleId)
+					->limit(1)
+					->get()
+					->row();
+		if ($battle){
+			$characters=$this->getAllCharsFromBattle($battleId);
+			if($characters){
+				$this->load->model("Modifiers_model");
+				$modifiers = $this->Modifiers_model->getAllModiersByRPCode($battle->code);
+				if($modifiers){
+					return ["battle"=>$battle,"characters"=>$characters,"modifiers"=>$modifiers];
+				}
+			}
+			
+		}
+		return false;
 	}
 }

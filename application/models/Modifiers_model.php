@@ -78,11 +78,8 @@ class Modifiers_model extends MY_model {
 		}else {
 			$collomName="characters.id";
 		}
-		//NOTE!!!
-		//Thanks to the false the Select statement !WON'T! be safe for sql injections.
-		//This is needed to get the SUM() working
-		//DO NOT! NO MATTER WHAT REASON put user input into the select statement!
-		$this->db->select("characters.id, SUM(modifiers.value) AS ".$statRole,false)
+		$this->db->select_sum("modifiers.value ", $statRole );
+		$this->db->select("characters.id" )//, SUM(modifiers.value) AS ".$statRole
 		//join every table that is needed so we can select on its role.
 		->from("characters")
 		->join("modifiers","modifiers.charId=characters.id")

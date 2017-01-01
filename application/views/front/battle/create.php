@@ -11,7 +11,7 @@
 		</div>
 	</div>
 </div>
-<div class="col-md-8" style="height:100%; overflow:auto">
+<div class="col-md-12" style="height:100%; overflow:auto">
 	<h1>Create Battle</h1>
 	<form>
 		<div class="form-group row">

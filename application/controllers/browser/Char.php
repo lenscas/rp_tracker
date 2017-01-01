@@ -38,14 +38,16 @@ class Char extends RP_Parent {
 		}
 		//echo validation_errors();
 		if($showForm){
-			parent::loadAll("char/create",array("rpCode"=>$rpCode));
+			parent::loadAll("char/create",$rpCode,array("rpCode"=>$rpCode));
 		}
 	}
 	public function character($charCode){
-		parent::loadAll("char/view",array("charCode"=>$charCode));
+		$this->load->model("Character_model");
+		
+		parent::loadAll("char/view",$this->Character_model->getRPCodeByChar($charCode),array("charCode"=>$charCode));
 	}
 	public function charList($rpCode){
-		parent::loadAll("char/list",array("rpCode"=>$rpCode));
+		parent::loadAll("char/list",$rpCode,array("rpCode"=>$rpCode));
 	}
 }
 

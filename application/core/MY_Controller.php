@@ -64,7 +64,7 @@ class User_Parent extends CI_Controller {
 		}
 	}
 	//only loads the header
-	public function loadHeader($dataOverWrite=false,$withCard=false){
+	public function loadHeader($dataOverWrite=false){
 		//$this->load->model("defaults_model.php");
 		$headerData=array();
 		if($dataOverWrite){
@@ -78,10 +78,36 @@ class User_Parent extends CI_Controller {
 			}
 		}
 		$this->load->view("front/defaults/header.php",$headerData);
-		$this->load->view("front/defaults/card.php");
+	}
+	
+	public function loadAll($view,$rpData,$data=array(),$overWriteHeader=false){
+		$this->loadHeader($overWriteHeader);
+		$this->load->view("front/defaults/firstSideBar");
+		//we need to check if the user has joined this rp. Because depending on that we either show a create character button or join rp button
+		//first, check if the rp model has already been loaded
+		if(! isset($this->Rp_model)){
+			$this->load->model("Rp_model");
+		}
+		$rpHeaderData=array();
+		//echo gettype($dat)
+		if(gettype($rpData)!="array"){
+			//echo "test2";
+			$rpHeaderData=array(
+				"rpCode"	=>	$rpData,
+				"hasJoined"	=>	$this->Rp_model->checkIfJoined($this->userId,false,$rpData),
+				"isGM"		=>	$this->Rp_model->checkIfGM($this->userId,$rpData)
+			);
+		} else {
+			echo "test";
+		}
+		$this->load->view("front/defaults/rp_header",$rpHeaderData);
+		$this->load->view("front/".$view,$data);
+		$this->load->view("front/defaults/rp_header_end");
+		$this->load->view("front/defaults/secondSideBar");
+		$this->load->view("front/defaults/footer.php");
 	}
 	//loads the header, the sidebars, the specified view and the footer
-	public function loadAll($view,$data=array(),$overWriteHeader=false,$withCard=false){
+	public function loadWithExtra($view,$data=array(),$overWriteHeader=false,$withCard=false){
 		$this->loadHeader($overWriteHeader,$withCard);
 		$this->load->view("front/defaults/firstSideBar");
 		$this->load->view("front/".$view,$data);

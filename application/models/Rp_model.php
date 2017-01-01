@@ -25,13 +25,20 @@ class Rp_model extends MY_Model {
 		$this->joinRp($userId,$rpId,1);
 		return array("success"=>true,"code"=>$postData['code']);
 	}
-	public function checkIfJoined($userId,$rpId){
-		return	$this->db->select("id")
-				->from("players")
-				->where("players.userId",$userId)
-				->where("players.rpId",$rpId)
-				->get()
-				->row();
+	public function checkIfJoined($userId,$rpId=false,$rpCode=false){
+		$this->db->select("players.id")
+		->from("players")
+		->where("players.userId",$userId);
+		if($rpCode){
+			$this->db->where("rolePlays.code",$rpCode)
+			->join("rolePlays","rolePlays.id=players.rpId");
+			
+		}else {
+			$this->db->where("players.rpId",$rpId);
+		}
+		
+		return $this->db->get()
+		->row();
 	}
 	public function joinRp($userId,$rpId,$isGm=0){
 		$result=$this->checkIfJoined($userId,$rpId);
@@ -103,7 +110,7 @@ class Rp_model extends MY_Model {
 		if($rp){
 			$config=array();
 			$config['max']=	array("startingStatAmount"=>$rp->startingStatAmount,"startingAbilityAmount"=>$rp->startingAbilityAmount);
-			$config['statSheet']	=	$this->db->select("statsInSheet.id,statsInSheet.name,statsInSheet.description, statRoles.description AS fallbackDescription")
+			$config['statSheet']	=	$this->db->select("statsInSheet.id,statsInSheet.name,statsInSheet.description, statRoles.description AS fallbackDescription, statRoles.role")
 										->from("statsInSheet")
 										->join("statRoles","statRoles.id=statsInSheet.roleId")
 										->where("statSheetId",$rp->statSheetId)

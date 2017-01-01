@@ -13,20 +13,20 @@ class Users extends User_Parent {
 	}
 	public function login(){
 		parent::redirectLoggedIn();
-		parent::loadAll("users/login");
+		parent::loadWithExtra("users/login");
 	}
 	public function logout(){
 		parent::forceLogin();
 		$this->session->sess_destroy();
-		parent::loadAll("users/logout",array(),array('loggedIn'=>false));
+		parent::loadWithExtra("users/logout",array(),array('loggedIn'=>false));
 	}
 	public function register(){
 		parent::redirectLoggedIn();
-		parent::loadAll("users/register");
+		parent::loadWithExtra("users/register");
 	}
 	public function showMade(){
 		parent::redirectLoggedIn();
-		parent::loadAll("users/success");
+		parent::loadWithExtra("users/success");
 	}
 	public function activate($activationString){
 		parent::redirectLoggedIn();
@@ -39,7 +39,7 @@ class Users extends User_Parent {
 			$status="an error accord.";
 			$message=$status;
 		}
-		parent::loadAll("users/activated",array("status"=>$status,"message"=>$message));
+		parent::loadWithExtra("users/activated",array("status"=>$status,"message"=>$message));
 	}
 	public function profile($userName=false){
 		$contentData=array();
@@ -49,9 +49,9 @@ class Users extends User_Parent {
 		} else {
 			$contentData['userId']=$this->users_model->getUserIdByName($userName);
 		}
-		parent::loadAll("users/profile",$contentData);
+		parent::loadWithExtra("users/profile",$contentData);
 	}
 	public function character($charId){
-		parent::loadAll("users/character",array("charId"=>$charId));
+		parent::loadWithExtra("users/character",array("charId"=>$charId));
 	}
 }

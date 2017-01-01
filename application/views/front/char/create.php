@@ -19,7 +19,7 @@
 		<textarea class="abilityDescription"></textarea>
 	</div>
 </div>
-<div class="col-md-8" style="height:100%; overflow:auto">
+<div class="col-md-12" style="height:100%; overflow:auto">
 	<div class="row" id="errors" style="display:none">
 		<div class="alert alert-danger" id="errorMessage"></div>
 	</div>
