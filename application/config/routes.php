@@ -75,6 +75,10 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['rp/character/create/(:any)']=	"browser/Char/createChar/$1";
 		$route['rp/character/view/(:any)']	=	"browser/Char/character/$1";
 		$route['rp/character/list/(:any)']	=	"browser/Char/charList/$1";
+	//battle
+		$route['rp/battle/create/(:any)']	=	"browser/Battle/create/$1";
+		$route['rp/battle/list/(:any)']		=	"browser/Battle/battleList/$1";
+		$route['rp/battle/manage/(:any)']	=	"browser/Battle/manageBattle/$1";
 //ajax
 	//user
 		$route["ajax/login"]			=	"json/Users/login";
@@ -96,3 +100,8 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['ajax/modifiers/update/(:any)']	=	"json/Modifiers/updateModifier/$1";
 		$route['ajax/modifiers/create/(:any)']	=	"json/Modifiers/insertModifier/$1";
 		$route['ajax/modifiers/delete/(:any)']	=	"json/Modifiers/deleteModifier/$1";
+	//battle
+		$route['ajax/battle/create']				=	"json/Battle/createBattle";
+		$route['ajax/battle/getAllBattles/(:any)']	=	"json/Battle/getAllBattlesByRp/$1";
+		$route['ajax/battle/getBattle/(:any)']		=	"json/Battle/getBattle/$1";
+	

@@ -164,6 +164,22 @@ class Character_model extends MY_model{
 				->get()
 				->row();
 	}
+	public function getRPCodeByChar($charCode=false,$charId=false){
+		$this->db->select("rolePlays.code")
+		->from("characters");
+		if($charCode){
+			$this->db->where("characters.code",$charCode);
+		} else {
+			$this->db->where("characters.id",$charId);
+		}
+		$data	=	$this->db->join("players","players.id=characters.playerId")
+					->join("rolePlays","rolePlays.id=players.rpId")
+					->get()
+					->row();
+		if($data){
+			return $data->code;
+		}
+	}
 	
 }
 

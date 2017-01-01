@@ -10,6 +10,12 @@
 .modalStat .newModalStat{
 	max-width:100px;
 }
+.bg-danger-dataTables-fix {
+	background-color: #f2dede !important; 
+}
+.bg-success-dataTables-fix {
+	background-color: #dff0d8 !important;
+}
 </style>
 <table id="template" style="display:none">
 	<tr class="stats">
@@ -30,7 +36,37 @@
 	</tr>
 	
 </table>
-<div class="col-md-8" id="rpContainer" style="height:100%; overflow:auto">
+<div id="battleTemplate" style="display:none">
+	<div class="battleRow">
+		<div class="row">
+			<div class="col-md-12">
+				<div id="battleName">
+					<h1 class="battleName"></h1>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<table class="table table-hover">
+					<thead class="battleHead">
+						<tr>
+							<th>Name</th>
+							<th>Health</th>
+							<th>Order</th>
+							<!--
+								This will be added if the user is an GM
+								<th>Actions <button type="button" class="btn btn-success pull-right">End turn</button></th>
+							-->
+						</tr>
+					</thead>
+					<tbody class="battleBody">
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="col-md-12" id="rpContainer" style="height:100%; overflow:auto">
 	<div class="row">
 		<div class="col-md-12">
 			<h1>Character Stats</h1>
@@ -99,10 +135,15 @@
 	</div>
 </div>
 <script>
+/*$("#testTable").DataTable({
+	"order":	[[2, "asc"]]
+
+})*/
 //these are used to store data that is needed everywhere. The CHAR_LIST is a list containing all the data from each character and all the modifiers on them. 
 //The RP_CONFIG is a list with all the settings of this rp.
 CHAR_LIST={}
 RP_CONFIG={}
+
 //this function is used to fill in the table containing the stats.
 function fillInStatTable(){
 	//first, grab all the modifiers that are present in this rp
@@ -143,6 +184,7 @@ function fillInStatTable(){
 		}
 	})
 }
+
 //this function is used to update the total sum of modifiers that gets displayed in the stat table.
 function updateStatCell(stats,cellId){
 	var total	=	0;
@@ -151,6 +193,7 @@ function updateStatCell(stats,cellId){
 	})
 	$("#"+cellId).empty().html(total)
 }
+
 //this function is used to update the information that is displayed in the modal.
 function updateModal(data,statId,character){
 	//make it easier to get the table body as it will be needed a lot
@@ -192,6 +235,7 @@ $.ajax({
 		})
 		//run the logic to fill in the stat table
 		fillInStatTable()
+		
 	}
 })
 //this will get all the abilities and fills in the ability table
@@ -212,14 +256,14 @@ $.ajax({
 	}
 })
 //This will make the modal appear when someone clicks on a stat. The modal will display all the modifiers that effect this stat.
-$("#charStatsList").on("click",".stat",function(event){
-	event.preventDefault()
-	var stat		=	$(this).data("statid")
-	var character	=	$(this).parent(".character").attr("id")
+	$("#charStatsList").on("click",".stat",function(event){
+		event.preventDefault()
+		var stat		=	$(this).data("statid")
+		var character	=	$(this).parent(".character").attr("id")
 	
-	updateModal(CHAR_LIST[character]["stats"][stat],stat,character)
-	$("#modifierModal").modal()
-})
+		updateModal(CHAR_LIST[character]["stats"][stat],stat,character)
+		$("#modifierModal").modal()
+	})
 //This will update a modifier.
 $("#modalModifierBody").on("click",".updateModifiers",function(event){
 	event.preventDefault()
@@ -272,7 +316,6 @@ $("#modalModifierBody").on("click","#createModfiers",function(event){
 			if(returnData.success){
 				data.code	=	charCode
 				data.modifiersId		=	returnData.id
-				console.log(CHAR_LIST[charCode]['stats'])
 				CHAR_LIST[charCode]["stats"][data["statId"]].push(data)
 				//update both the modal and the correct cell. We update the modal as a new input for the creation of a modifier needs to appear and this modifier needs to get an update button
 				updateStatCell(CHAR_LIST[charCode]['stats'][data.statId],"cell"+charCode+data.statId)

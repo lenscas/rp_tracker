@@ -6,11 +6,11 @@ class Rp extends RP_Parent {
 		parent::__construct();
 	}
 	public function create(){
-		parent::loadAll("rp/create");
+		parent::loadWithExtra("rp/create");
 	}
 	
 	public function showAllRPs(){
-		parent::loadAll("rp/rpList");
+		parent::loadWithExtra("rp/rpList");
 	}
 	public function getRpDetails($rpCode){
 		$this->load->model("Rp_model");
@@ -21,6 +21,6 @@ class Rp extends RP_Parent {
 		} else {
 			$data=array("exist"=>false);
 		}
-		parent::loadAll("rp/details",$data);
+		parent::loadAll("rp/details",$rpCode,$data);
 	}
 }

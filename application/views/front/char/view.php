@@ -4,7 +4,7 @@
 		<div class="abilityDescription"></div>
 	</div>
 </div>
-<div class="col-md-8" id="rpContainer" style="height:100%; overflow:auto">
+<div class="col-md-12" id="rpContainer" style="height:100%; overflow:auto">
 	<div class="col-md-12" id="textContainer">
 		<div class="row">
 			
