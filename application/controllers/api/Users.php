@@ -1,12 +1,14 @@
 <?php
+//namespace Restserver\Libraries;
 defined('BASEPATH') OR exit('No direct script access allowed');
+Require_once(APPPATH."libraries/REST_Controller.php");
 
-class Users extends User_Parent {
+class Users extends \Restserver\Libraries\REST_Controller {
 	public function __construct(){
 		parent::__construct();
 		$this->load->model("Users_model");
 	}
-	public function login(){
+	public function login_post(){
 		parent::redirectLoggedIn();
 		$error;
 		$this->load->library('form_validation');
