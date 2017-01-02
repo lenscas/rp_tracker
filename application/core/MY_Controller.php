@@ -1,5 +1,4 @@
 <?php
-//Require_once(APPPATH."libraries/REST_Controller.php");
 class RP_Parent extends User_Parent {
 	public $userId;
 	public function __construct() {

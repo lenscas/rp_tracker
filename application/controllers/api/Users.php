@@ -1,9 +1,5 @@
 <?php
-//namespace Restserver\Libraries;
-defined('BASEPATH') OR exit('No direct script access allowed');
-Require_once(APPPATH."libraries/REST_Controller.php");
-
-class Users extends \Restserver\Libraries\REST_Controller {
+class Users extends User_Parent {
 	public function __construct(){
 		parent::__construct();
 		$this->load->model("Users_model");

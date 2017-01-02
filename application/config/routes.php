@@ -82,11 +82,14 @@ $route['translate_uri_dashes'] = FALSE;
 //api
 	//user
 		$route["api/login"]          =  "api/Users/login";
-		$route['api/register']       =  "api/Users/register";
-		$route['api/profile/(:any)'] =  "api/Users/profile/$1";
+		$route['api/users']          =  "api/Users/users";
+		//$route['api/profile/(:any)'] =  "api/Users/profile/$1";
 	//characters
-		$route['api/character/list/(:any)'] =  "api/Char/getCharList/$1";
-		$route['api/character/(:any)']      =  "api/Character/show/$1/false"; //need to checkout what this was for it seems. 
+		$route["api/characters/(:any)"]     =  "api/Char/character/$1";
+		
+		//$route['api/character/list/(:any)'] =  "api/Char/getCharList/$1";
+		//$route['api/character/(:any)']      =  "api/Character/show/$1/false"; //need to checkout what this was for it seems. 
+	//ability list
 		$route['api/rp/abilityList/(:any)'] =  "api/Char/getAbilitiesByCharInRP/$1";
 	//rp
 		$route["api/rp/create"]               =  "api/Rp/create";
