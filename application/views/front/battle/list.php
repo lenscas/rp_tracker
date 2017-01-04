@@ -52,7 +52,7 @@
 	//let GLOBAL_IS_ADMIN=true
 	
 	$.ajax({
-		url		:	"<?php echo base_url("index.php/ajax/battle/getAllBattles/".$rpCode) ?>",
+		url		:	"<?php echo base_url("index.php/api/battle/".$rpCode) ?>",
 		dataType:	"json",
 		method	:	"GET",
 		success	:	function(data){

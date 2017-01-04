@@ -36,7 +36,7 @@
 		var button=this
 		event.preventDefault()
 		$.ajax({
-			url		:	"<?php echo base_url("index.php/ajax/rp/join/".$rpCode) ?>",
+			url		:	"<?php echo base_url("index.php/api/join/".$rpCode) ?>",
 			method	:	"GET",
 			dataType:	"json",
 			success	:	function(data){

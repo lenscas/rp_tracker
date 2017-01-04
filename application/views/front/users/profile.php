@@ -34,7 +34,7 @@
 		if(isset($userId)){
 	?>
 		$.ajax({
-			url		:	"<?php echo base_url("index.php/ajax/profile/".$userId)?>",
+			url		:	"<?php echo base_url("index.php/api/users/".$userId)?>",
 			method	:	"GET",
 			dataType:	"json",
 			success	:	function(data){

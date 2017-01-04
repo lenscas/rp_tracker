@@ -81,30 +81,37 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['rp/battle/manage/(:any)']	=	"browser/Battle/manageBattle/$1";
 //api
 	//user
-		$route["api/login"]          =  "api/Users/login";
-		$route['api/users']          =  "api/Users/users";
+		$route["api/login"]["POST"]        =  "api/Users/login";
+		$route['api/users/(:any)']["GET"]  =  "api/Users/profile/$1";
+		$route["api/users"]["POST"]        =  "api/Users/register";
 		//$route['api/profile/(:any)'] =  "api/Users/profile/$1";
 	//characters
-		$route["api/characters/(:any)"]     =  "api/Char/character/$1";
+		//the first (:any) refers to the rp_code
+		$route["api/characters/(:any)"]["GET"]        =  "api/Char/getCharList/$1";
+		$route["api/characters/(:any)"]["POST"]       =  "api/Char/CreateCharacter/$1"; //TODO not yet implemented
+		$route['api/characters/(:any)/(:any)']["GET"] =  "api/Char/getCharacter/$1";
 		
-		//$route['api/character/list/(:any)'] =  "api/Char/getCharList/$1";
+		
 		//$route['api/character/(:any)']      =  "api/Character/show/$1/false"; //need to checkout what this was for it seems. 
 	//ability list
-		$route['api/rp/abilityList/(:any)'] =  "api/Char/getAbilitiesByCharInRP/$1";
+		$route['api/abilities/(:any)']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$1";
 	//rp
-		$route["api/rp/create"]               =  "api/Rp/create";
-		$route['api/rp/getAllRPs']            =  "api/Rp/listAllRPs";
-		$route['api/rp/details/(:any)']       =  "api/Rp/getRP/$1";
-		$route['api/rp/join/(:any)']          =  "api/Rp/join/$1";
-		$route['api/rp/getCharacter/(:any)']  =  "api/Char/getCharacter/$1";
-		$route['api/rp/getConfig/(:any)']     =  "api/Rp/getRPConfig/$1";
-		$route['api/rp/getAllStatSheets']     =  "api/Rp/getAllStatSheets";
+		$route["api/rp"]["POST"]            =  "api/Rp/create";
+		$route['api/rp']["GET"]             =  "api/Rp/listAllRPs";
+		$route['api/rp/(:any)']["GET"]      =  "api/Rp/getRP/$1";
+		$route['api/join/(:any)']["GET"]    =  "api/Rp/join/$1";
+		$route["api/config/(:any)"]["GET"]  =  "api/Rp/getRPConfig/$1";
+		$route["api/statsheet"]["GET"]      =  "api/Rp/getAllStatSheets";
+		//$route['api/rp/join/(:any)']        =  "api/Rp/join/$1";
+		//$route['api/rp/getAllStatSheets']   =  "api/Rp/getAllStatSheets";
+		//$route['api/rp/getCharacter/(:any)']  =  "api/Char/getCharacter/$1";
+		//$route['api/rp/getConfig/(:any)']     =  "api/Rp/getRPConfig/$1";
 	//modifiers
-		$route['api/modifiers/update/(:any)']  =  "api/Modifiers/updateModifier/$1";
-		$route['api/modifiers/create/(:any)']  =  "api/Modifiers/insertModifier/$1";
-		$route['api/modifiers/delete/(:any)']  =  "api/Modifiers/deleteModifier/$1";
+		$route['api/modifiers/(:any)']["PUT"]  =  "api/Modifiers/updateModifier/$1";
+		$route['api/modifiers/(:any)']["POST"]    =  "api/Modifiers/insertModifier/$1";
+		$route['api/modifiers/(:any)']["DELETE"]  =  "api/Modifiers/deleteModifier/$1";
 	//battle
-		$route['api/battle/create']                =  "api/Battle/createBattle";
-		$route['api/battle/getAllBattles/(:any)']  =  "api/Battle/getAllBattlesByRp/$1";
-		$route['api/battle/getBattle/(:any)']      =  "api/Battle/getBattle/$1";
+		$route['api/battle']["POST"]               =  "api/Battle/createBattle";
+		$route['api/battle/(:any)']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";
+		$route['api/battle/(:any)/(:any)']["GET"]  =  "api/Battle/getBattle/$2";
 	

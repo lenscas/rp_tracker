@@ -202,7 +202,7 @@
 	}
 	function updatePage(attackingCharSelect=false,defendingCharSelect=false){
 		$.ajax({
-			url		:	"<?php echo base_url("index.php/ajax/battle/getBattle/".$battleId )?>",
+			url		:	"<?php echo base_url("index.php/api/battle/".$rpCode."/".$battleId )?>",
 			method	:	"GET",
 			dataType:	"json",
 			success	:	function(data){
@@ -213,7 +213,7 @@
 				updateCharSelect($("#attackingCharacter"),ALL_CHARACTERS,true,attackingCharSelect)
 				updateCharSelect($("#defendingCharacter"),ALL_CHARACTERS,true,defendingCharSelect)
 				$.ajax({
-					url		:	"<?php echo base_url("index.php/ajax/rp/getConfig") ?>/"+data.battle.code,
+					url		:	"<?php echo base_url("index.php/api/config") ?>/"+data.battle.code,
 					dataType:	"json",
 					method	:	"GET",
 					success	:	function(data){
@@ -343,7 +343,7 @@
 		}
 		let defenderCharCode = getCharByCode($("#defendingCharacter").val()).character.code
 		$.ajax({
-		url		:	"<?php echo base_url("index.php/ajax/modifiers/create")?>/"+defenderCharCode,
+		url		:	"<?php echo base_url("index.php/api/modifiers")?>/"+defenderCharCode,
 		method	:	"POST",
 		data	:	data,
 		dataType:	"json",

@@ -40,7 +40,7 @@
 </div>
 <script>
 	$.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/rp/details/".$rpCode) ?>",
+	url		:	"<?php echo base_url("index.php/api/rp/".$rpCode) ?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){

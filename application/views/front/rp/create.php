@@ -45,7 +45,7 @@
 <script>
 	//load all available statsheets
 	$.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/rp/getAllStatSheets")?>",
+	url		:	"<?php echo base_url("index.php/api/statSheets")?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){
@@ -65,7 +65,7 @@
 		var description	=	$("#description").bbcode()
 		//console.log(description);
 		$.ajax({
-		url		:	"<?php echo base_url("/index.php/ajax/rp/create") ?>",
+		url		:	"<?php echo base_url("/index.php/api/rp/") ?>",
 		dataType:	"json",
 		method	:	"POST",
 		data	:	{name				:	name,

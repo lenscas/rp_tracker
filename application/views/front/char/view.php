@@ -44,7 +44,7 @@ function fillIn(data){
 	})
 }
 $.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/rp/getCharacter/".$charCode) ?>",
+	url		:	"<?php echo base_url("index.php/api/characters/".$charCode) ?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){

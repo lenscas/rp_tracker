@@ -55,7 +55,7 @@
 					var mail		=	$("#mail").val()
 					if( password && username){
 						$.ajax({
-							url		:	"<?php echo base_url("index.php/ajax/register") ?>",
+							url		:	"<?php echo base_url("index.php/api/users") ?>",
 							method	:	"POST",
 							data	:	{password	:	password, 
 									passwordCheck	:	passwordCheck,

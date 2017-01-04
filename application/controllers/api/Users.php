@@ -4,7 +4,7 @@ class Users extends User_Parent {
 		parent::__construct();
 		$this->load->model("Users_model");
 	}
-	public function login_post(){
+	public function login(){
 		parent::redirectLoggedIn();
 		$error;
 		$this->load->library('form_validation');

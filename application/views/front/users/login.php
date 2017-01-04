@@ -49,7 +49,7 @@
 				var username	=	$("#username").val()
 				if( password && username){
 					$.ajax({
-						url		:	"<?php echo base_url("index.php/ajax/login") ?>",
+						url		:	"<?php echo base_url("index.php/api/login") ?>",
 						method	:	"POST",
 						data	:	{password : password, username : username},
 						dataType:	"json",

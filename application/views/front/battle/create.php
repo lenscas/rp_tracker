@@ -45,7 +45,7 @@ function addToCharList(){
 	AMOUNT_OF_SELECTS=AMOUNT_OF_SELECTS+1
 }
 $.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/character/list/".$rpCode)?>",
+	url		:	"<?php echo base_url("index.php/api/characters/".$rpCode)?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){
@@ -92,7 +92,7 @@ $("#create").on("click",function(event){
 		}
 	})
 	$.ajax({
-		url		:	"<?php echo base_url("index.php/ajax/battle/create")?>",
+		url		:	"<?php echo base_url("index.php/api/battle/".$rpCode)?>",
 		method	:	"post",
 		dataType:	"json",
 		data	:	data,
