@@ -47,6 +47,28 @@ class User_Parent extends CI_Controller {
 			return $this->security->xss_clean($this->input->post());
 		}
 	}
+	private $putValues;
+	public function getPutSafe($alsoGiveError=false){
+		if($alsoGiveError){
+			$put=$this->getPut();
+			$cleanPut=$this->security->xss_clean($put);
+			$safe=false;
+			if($clean===$text){
+				$safe=true;
+			}
+			return array("safe"=>$safe,"clean"=>$clean,"raw"=>$put);
+		} else {
+			return $this->security->xss_clean($this->getPut());
+		}
+	}
+	public function getPut(){
+		if(empty($this->putValues)){
+			//we can only access the PUT values from php's input, for some reason
+			//we also need to parse them first
+			parse_str(file_get_contents("php://input"),$this->putValues);
+		}
+		return $this->putValues;
+	}
 	//used to force a login
 	public function forceLogIn(){
 		if(!$this->session->has_userdata("userId")){
@@ -123,3 +145,4 @@ class User_Parent extends CI_Controller {
 	}
 
 }
+	

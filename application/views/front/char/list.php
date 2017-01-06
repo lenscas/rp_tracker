@@ -148,7 +148,7 @@ RP_CONFIG={}
 function fillInStatTable(){
 	//first, grab all the modifiers that are present in this rp
 	$.ajax({
-		url		:	"<?php echo base_url("index.php/ajax/character/list/".$rpCode) ?>",
+		url		:	"<?php echo base_url("index.php/api/characters/".$rpCode) ?>",
 		method	:	"GET",
 		dataType:	"json",
 		success	:	function(data){
@@ -219,7 +219,7 @@ function updateModal(data,statId,character){
 }
 //first, get the configuration for this rp
 $.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/rp/getConfig/".$rpCode) ?>",
+	url		:	"<?php echo base_url("index.php/api/config/".$rpCode) ?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){
@@ -240,7 +240,7 @@ $.ajax({
 })
 //this will get all the abilities and fills in the ability table
 $.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/rp/abilityList/".$rpCode)?>",
+	url		:	"<?php echo base_url("index.php/api/abilities/".$rpCode)?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){
@@ -275,8 +275,8 @@ $("#modalModifierBody").on("click",".updateModifiers",function(event){
 	var timer	=	$(tr).find("[name='count-down']").val()
 	var test	=	{name	:	name,value	:	value,countDown	:	timer}
 	$.ajax({
-		url		:	"<?php echo base_url("index.php/ajax/modifiers/update")?>/"+modId,
-		method	:	"POST",
+		url		:	"<?php echo base_url("index.php/api/modifiers/")?>/"+modId,
+		method	:	"PUT",
 		data	:	test,
 		dataType:	"json",
 		success	:	function(data){
@@ -307,7 +307,7 @@ $("#modalModifierBody").on("click","#createModfiers",function(event){
 		statId		:	$(this).data("stat-id")
 	}
 	$.ajax({
-		url		:	"<?php echo base_url("index.php/ajax/modifiers/create")?>/"+charCode,
+		url		:	"<?php echo base_url("index.php/api/modifiers/")?>/"+charCode,
 		method	:	"POST",
 		data	:	data,
 		dataType:	"json",
@@ -333,8 +333,8 @@ $("#modalModifierBody").on("click",".deleteModifier",function(event){
 	var	modKey		=	$(this).parents("tr.modalRow").attr("id").replace("modalRow","")
 	
 	$.ajax({
-		url		:	"<?php echo base_url("index.php/ajax/modifiers/delete")?>/"+modId,
-		method	:	"GET",
+		url		:	"<?php echo base_url("index.php/api/modifiers")?>/"+modId,
+		method	:	"DELETE",
 		dataType:	"json",
 		success	:	function(data){
 			if(data.success){

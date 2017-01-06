@@ -79,29 +79,39 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['rp/battle/create/(:any)']	=	"browser/Battle/create/$1";
 		$route['rp/battle/list/(:any)']		=	"browser/Battle/battleList/$1";
 		$route['rp/battle/manage/(:any)']	=	"browser/Battle/manageBattle/$1";
-//ajax
+//api
 	//user
-		$route["ajax/login"]			=	"json/Users/login";
-		$route['ajax/register']			=	"json/Users/register";
-		$route['ajax/profile/(:any)']	=	"json/Users/profile/$1";
+		$route["api/login"]["POST"]        =  "api/Users/login";
+		$route['api/users/(:any)']["GET"]  =  "api/Users/profile/$1";
+		$route["api/users"]["POST"]        =  "api/Users/register";
+		//$route['api/profile/(:any)'] =  "api/Users/profile/$1";
 	//characters
-		$route['ajax/character/list/(:any)']	=	"json/Char/getCharList/$1";
-		$route['ajax/character/(:any)']			=	"json/Character/show/$1/false"; //need to checkout what this was for it seems. 
-		$route['ajax/rp/abilityList/(:any)']	=	"json/Char/getAbilitiesByCharInRP/$1";
+		//the first (:any) refers to the rp_code
+		$route["api/characters/(:any)"]["GET"]        =  "api/Char/getCharList/$1";
+		$route["api/characters/(:any)"]["POST"]       =  "api/Char/CreateCharacter/$1"; //TODO not yet implemented
+		$route['api/characters/(:any)/(:any)']["GET"] =  "api/Char/getCharacter/$1";
+		
+		
+		//$route['api/character/(:any)']      =  "api/Character/show/$1/false"; //need to checkout what this was for it seems. 
+	//ability list
+		$route['api/abilities/(:any)']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$1";
 	//rp
-		$route["ajax/rp/create"]				=	"json/Rp/create";
-		$route['ajax/rp/getAllRPs']				=	"json/Rp/listAllRPs";
-		$route['ajax/rp/details/(:any)']		=	"json/Rp/getRP/$1";
-		$route['ajax/rp/join/(:any)']			=	"json/Rp/join/$1";
-		$route['ajax/rp/getCharacter/(:any)']	=	"json/Char/getCharacter/$1";
-		$route['ajax/rp/getConfig/(:any)']		=	"json/Rp/getRPConfig/$1";
-		$route['ajax/rp/getAllStatSheets']		=	"json/Rp/getAllStatSheets";
+		$route["api/rp"]["POST"]            =  "api/Rp/create";
+		$route['api/rp']["GET"]             =  "api/Rp/listAllRPs";
+		$route['api/rp/(:any)']["GET"]      =  "api/Rp/getRP/$1";
+		$route['api/join/(:any)']["GET"]    =  "api/Rp/join/$1";
+		$route["api/config/(:any)"]["GET"]  =  "api/Rp/getRPConfig/$1";
+		$route["api/statsheet"]["GET"]      =  "api/Rp/getAllStatSheets";
+		//$route['api/rp/join/(:any)']        =  "api/Rp/join/$1";
+		//$route['api/rp/getAllStatSheets']   =  "api/Rp/getAllStatSheets";
+		//$route['api/rp/getCharacter/(:any)']  =  "api/Char/getCharacter/$1";
+		//$route['api/rp/getConfig/(:any)']     =  "api/Rp/getRPConfig/$1";
 	//modifiers
-		$route['ajax/modifiers/update/(:any)']	=	"json/Modifiers/updateModifier/$1";
-		$route['ajax/modifiers/create/(:any)']	=	"json/Modifiers/insertModifier/$1";
-		$route['ajax/modifiers/delete/(:any)']	=	"json/Modifiers/deleteModifier/$1";
+		$route['api/modifiers/(:any)']["PUT"]     =  "api/Modifiers/updateModifier/$1";
+		$route['api/modifiers/(:any)']["POST"]    =  "api/Modifiers/insertModifier/$1";
+		$route['api/modifiers/(:any)']["DELETE"]  =  "api/Modifiers/deleteModifier/$1";
 	//battle
-		$route['ajax/battle/create']				=	"json/Battle/createBattle";
-		$route['ajax/battle/getAllBattles/(:any)']	=	"json/Battle/getAllBattlesByRp/$1";
-		$route['ajax/battle/getBattle/(:any)']		=	"json/Battle/getBattle/$1";
+		$route['api/battle/(:any)']["POST"]               =  "api/Battle/createBattle";
+		$route['api/battle/(:any)']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";
+		$route['api/battle/(:any)/(:any)']["GET"]  =  "api/Battle/getBattle/$2";
 	

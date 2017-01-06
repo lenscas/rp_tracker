@@ -37,7 +37,7 @@ function renderRPs(){
 	})
 }
 $.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/rp/getAllRPs") ?>",
+	url		:	"<?php echo base_url("index.php/api/rp") ?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){

@@ -100,7 +100,7 @@ function showError(error){
 	$("#errorMessage").empty().html(error)
 }
 $.ajax({
-	url		:	"<?php echo base_url("index.php/ajax/rp/getConfig/".$rpCode) ?>",
+	url		:	"<?php echo base_url("index.php/api/config/".$rpCode) ?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){

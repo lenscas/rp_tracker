@@ -1,3 +1,4 @@
+<!-->
 <div class="col-md-8">
 	<div class="row">
 		<div style="text-align:center">	
@@ -37,3 +38,4 @@
 		}
 	})
 </script>
+-->
