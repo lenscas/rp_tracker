@@ -107,11 +107,11 @@ $route['translate_uri_dashes'] = FALSE;
 		//$route['api/rp/getCharacter/(:any)']  =  "api/Char/getCharacter/$1";
 		//$route['api/rp/getConfig/(:any)']     =  "api/Rp/getRPConfig/$1";
 	//modifiers
-		$route['api/modifiers/(:any)']["PUT"]  =  "api/Modifiers/updateModifier/$1";
+		$route['api/modifiers/(:any)']["PUT"]     =  "api/Modifiers/updateModifier/$1";
 		$route['api/modifiers/(:any)']["POST"]    =  "api/Modifiers/insertModifier/$1";
 		$route['api/modifiers/(:any)']["DELETE"]  =  "api/Modifiers/deleteModifier/$1";
 	//battle
-		$route['api/battle']["POST"]               =  "api/Battle/createBattle";
+		$route['api/battle/(:any)']["POST"]               =  "api/Battle/createBattle";
 		$route['api/battle/(:any)']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";
 		$route['api/battle/(:any)/(:any)']["GET"]  =  "api/Battle/getBattle/$2";
 	

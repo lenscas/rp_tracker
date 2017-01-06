@@ -7,17 +7,18 @@ class Modifiers extends RP_Parent {
 	}
 	public function updateModifier($modId){
 		
-		if($this->checkIfValidMod()){
+		if($this->checkIfValidMod(true)){
 			$this->load->model("Rp_model");
 			$rpId	=	$this->Modifiers_model->getRPfromMod($modId);
 			if($this->Rp_model->checkIfGM($this->userId,$rpId)){
-				$this->Modifiers_model->updateModifier($modId,parent::getPostSafe());
+				$this->Modifiers_model->updateModifier($modId,parent::getPutSafe());
 				echo json_encode(array("success"=>true));
 			}else {
 				echo json_encode(array("success"=>false,"error"=>"You don't have permission to edit this."));
 			}
 			
 		} else {
+			var_dump(parent::getPostSafe());
 			echo json_encode(array("success"=>false,"error"=>"One or more fields are not set correctly."));
 		}
 	}
@@ -37,8 +38,11 @@ class Modifiers extends RP_Parent {
 			echo json_encode(array("success"=>false,"error"=>"One or more fields are not set correctly."));
 		}
 	}
-	private function checkIfValidMod(){
+	private function checkIfValidMod($isPut=false){
 		$this->load->library("form_validation");
+		if($isPut){
+			$this->form_validation->set_data(parent::getPut());
+		}
 		$this->form_validation->set_rules("name","name","required");
 		$this->form_validation->set_rules("value","value","required|integer");
 		$this->form_validation->set_rules("countDown","countDown","required|integer");
