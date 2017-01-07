@@ -265,7 +265,7 @@
 		let defenceRoll  = rollMultipleDice(defence)
 		if(attackRoll>defenceRoll){
 			let rolledOver = attackRoll-defenceRoll
-			if(rolledOver > 30) {
+			if(rolledOver > 50) {
 				return 3
 			}
 			if(rolledOver >20){
@@ -309,9 +309,12 @@
 	function updateSafeDamageButton(amount){
 		let safeDamageBTN=$("#safeDamage")
 		let state = false
-		if(amount <=0){
+		console.log(GLOBAL_IS_GM);
+		if(amount <=0 || !GLOBAL_IS_GM){
+			console.log(" wtf")
 			state = true
 		}
+		console.log(state)
 		$(safeDamageBTN).prop("disabled",state)
 		$(safeDamageBTN).val(amount)
 	}

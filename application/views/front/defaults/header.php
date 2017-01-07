@@ -71,7 +71,6 @@
 					<ul class="nav navbar-nav">
 						<li><a href="<?php echo base_url("index.php/rp/create") ?>">Create RP</a></li>
 						<li><a href="<?php echo base_url("index.php/rp/list") ?>">Join RP</a></li>
-						<li><a href="<?php echo base_url("index.php/game/worldmap") ?>">World map</a></li>
 					</ul>
 					<ul class="nav navbar-nav navbar-right">
 						<li><a href="<?php echo base_url("index.php/profile") ?>">Profile</a></li>
