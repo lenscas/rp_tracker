@@ -45,7 +45,7 @@
 <script>
 	//load all available statsheets
 	$.ajax({
-	url		:	"<?php echo base_url("index.php/api/statSheets")?>",
+	url		:	"<?php echo base_url("index.php/api/statsheet")?>",
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){

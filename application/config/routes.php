@@ -81,9 +81,9 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['rp/battle/manage/(:any)']	=	"browser/Battle/manageBattle/$1";
 //api
 	//user
-		$route["api/login"]["POST"]        =  "api/Users/login";
-		$route['api/users/(:any)']["GET"]  =  "api/Users/profile/$1";
-		$route["api/users"]["POST"]        =  "api/Users/register";
+		$route["api/login"]["POST"]           =  "api/Users/login";
+		$route['api/users/(:any)']["GET"]     =  "api/Users/profile/$1";
+		$route["api/users"]["POST"]           =  "api/Users/register";
 		//$route['api/profile/(:any)'] =  "api/Users/profile/$1";
 	//characters
 		//the first (:any) refers to the rp_code

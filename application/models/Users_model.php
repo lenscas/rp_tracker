@@ -1,14 +1,5 @@
 <?php
 class Users_model extends MY_Model {
-	//this is used to get the user data by its id,username or email. 
-	//Technically other ways can also be done but as it will only return one row it may have unexpected results that way.
-	/*private function getUserByTable($name,$table){
-		$this->db->select("*");
-		$this->db->from("users");
-		$this->db->where($table,$name);
-		$query=$this->db->get();
-		return $query->row_array();
-	}*/
 	public function getUserIdByName($userName){
 		$user=$this->db->get_where("users",array("username"=>$userName),1)->row();
 		if($user){
@@ -16,12 +7,6 @@ class Users_model extends MY_Model {
 		}
 		
 	}
-	
-	// Takes a plaintext password and a random salt string, combines them, and hashes the result
-	public function saltAndHash($password, $saltString) {
-		return sha3($password . $saltString);	//TODO: Replace sha3() with an atual call to the hash function
-	}
-	
 	public function logIn($data){
 		$result=$this->db->select("*")
 				->from("users")
@@ -61,7 +46,6 @@ class Users_model extends MY_Model {
 		$id=parent::generateId("users");
 		$this->load->helper("string");
 		$randomActivationString=random_string("alpha", 32);
-		//$this->load->library('encrypt');
 		$insertData=array("id"=>$id,
 			"username"=>$data['username'],
 			"password"=>password_hash($data['password'],PASSWORD_DEFAULT),
@@ -79,7 +63,7 @@ class Users_model extends MY_Model {
 
 		$this->email->send();
 	}
-	//activates the user so he can play. As that is what everyone wants to do today.
+	//activates the user so he can play. As that is what everyone wants to do these days.
 	public function activate($activateString){
 		//get the user by its activation code
 		$user	=	$this->db->select("id")
@@ -95,15 +79,13 @@ class Users_model extends MY_Model {
 		$this->db->where($user);
 		$this->db->update("users",array("activationCode"=>"","hasActivated"=>1));
 	}
-	//just a way to nicely wrap arround the getByTable function to make controllers look better that need userData
-	
 	public function getUserData($userId){
 		$data=array();
-		$data['profile']	=	$this->db->select("username")
-								->from("users")
-								->where("id",$userId)
-								->get()
-								->row_array();
+		$data	=	$this->db->select("username")
+					->from("users")
+					->where("id",$userId)
+					->get()
+					->row_array();
 		return $data;
 	}
 
