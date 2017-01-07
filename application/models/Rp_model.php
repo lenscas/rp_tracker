@@ -140,4 +140,21 @@ class Rp_model extends MY_Model {
 			return false;
 		}
 	}
+	public function getAllRPFromUser($userId){
+		return	$this->db->select("rolePlays.code,rolePlays.name,rolePlays.description")
+				->from("rolePlays")
+				->where("rolePlays.isPrivate",0)
+				->where("rolePlays.creator",$userId)
+				->get()
+				->result();
+	}
+	public function getAllJoinedRp($userId){
+		return	$this->db->select("rolePlays.code,rolePlays.name,rolePlays.description")
+				->from("rolePlays")
+				->join("players","players.rpId=rolePlays.id")
+				->where("rolePlays.isPrivate",0)
+				->where("players.userId",$userId)
+				->get()
+				->result();
+	}
 }

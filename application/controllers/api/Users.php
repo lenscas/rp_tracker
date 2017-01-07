@@ -54,7 +54,17 @@ class Users extends User_Parent {
 		if(! $userId){
 			$userId	=	parent::getIdForced();
 		}
-		echo json_encode($this->Users_model->getUserData($userId));
+		//lets slowly get all the data that we need
+		//we first need to grab another model
+		$this->load->model("Rp_model");
+		//first all rps made by this guy
+		$madeRPs = $this->Rp_model->getAllRPFromUser($userId);
+		//now, all the rps this guy has joined
+		$joinedRPs = $this->Rp_model->getAllJoinedRp($userId);
+		//other data that may or may not be important
+		$userData = $this->Users_model->getUserData($userId);
+		//now, lets put it in a nice array and send it to the user
+		echo json_encode(["success"=>true,"joinedRPs"=>$joinedRPs,"madeRPs"=>$madeRPs,"userData"=>$userData]);
 	}
 
 }

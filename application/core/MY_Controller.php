@@ -129,16 +129,16 @@ class User_Parent extends CI_Controller {
 		$this->load->view("front/defaults/footer.php");
 	}
 	//loads the header, the sidebars, the specified view and the footer
-	public function loadWithExtra($view,$data=array(),$overWriteHeader=false,$withCard=false){
-		$this->loadHeader($overWriteHeader,$withCard);
+	public function loadWithExtra($view,$data=array(),$overWriteHeader=false){
+		$this->loadHeader($overWriteHeader);
 		$this->load->view("front/defaults/firstSideBar");
 		$this->load->view("front/".$view,$data);
 		$this->load->view("front/defaults/secondSideBar");
 		$this->load->view("front/defaults/footer.php");
 	}
 	//used to load the default header+a normal view+footer
-	public function loadbasics($view,$data=array(),$withCard=false){
-		$this->loadHeader(false,$withCard);
+	public function loadbasics($view,$data=array()){
+		$this->loadHeader(false);
 		$this->load->view("front/".$view,$data);
 		$this->load->view("front/defaults/footer.php");
 		
