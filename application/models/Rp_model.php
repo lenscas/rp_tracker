@@ -92,7 +92,6 @@ class Rp_model extends MY_Model {
 								->from("characters")
 								->join("players","players.id=characters.playerId")
 								->where("players.rpId",$rp->id)
-								->where("isMinion",0)
 								->get()
 								->result_array();
 			$rp->username	=	$this->db->select("users.username")

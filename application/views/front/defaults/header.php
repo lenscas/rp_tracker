@@ -25,7 +25,7 @@
 	<script src="<?php echo base_url("third_party/jquery-ui-1.11.4/jquery-ui.js")?>" type="text/javascript"></script>
 	<script src="<?php echo base_url("third_party/bootstrap-3.3.5-dist/js/bootstrap.min.js")?>" type="text/javascript"></script>
 	<!-- The new editor that is going to be used. -->
-	<script src="<?php echo base_url("third_party/wysibb/jquery.wysibb.min.js") ?>" type="text/javascript"></script>
+	<script src="<?php echo base_url("third_party/wysibb/jquery.wysibb.js") ?>" type="text/javascript"></script>
 	<link rel="stylesheet" href="<?php echo base_url("third_party/wysibb/theme/default/wbbtheme.css") ?>" type="text/css" />
 	<!-- an bb to html parser -->
 	<script src="<?php echo base_url("third_party/BBParser.js")?>" type="text/javascript"></script>

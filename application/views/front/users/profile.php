@@ -2,6 +2,7 @@
 	.small {
 		max-height:50px;
 		overflow-y:hidden;
+		cursor : pointer;
 	}
 </style>
 <div class="col-md-8" style="height:100%">
