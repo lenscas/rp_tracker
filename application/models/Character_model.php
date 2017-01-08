@@ -51,7 +51,7 @@ class Character_model extends MY_model{
 		//if the user submitted an url as picture we need to set that up correct as well
 		$hasGivenURL=false;
 		if(!empty($data["appearancePictureUrl"]) && $data["appearancePictureUrl"]!=""){
-			$data["isLocalImage"]=true;
+			$data["isLocalImage"]=0;
 			$hasGivenURL=true;
 			$data["appearancePicture"]=$data["appearancePictureUrl"];
 		}
@@ -98,6 +98,7 @@ class Character_model extends MY_model{
 										characters.name,
 										characters.age,
 										characters.appearancePicture,
+										characters.isLocalImage,
 										characters.appearanceDescription,
 										characters.backstory,
 										characters.personality,
@@ -128,6 +129,7 @@ class Character_model extends MY_model{
 												characters.age,
 												characters.appearancePicture,
 												characters.appearanceDescription,
+												characters.isLocalImage,
 												characters.backstory,
 												characters.personality,
 												characters.code,
@@ -139,6 +141,7 @@ class Character_model extends MY_model{
 							->get()
 							->result_array();
 		//print_r($data);
+		//echo $this->db->last_query();
 		$this->load->model("Modifiers_model");
 		$data['modifiers']=$this->Modifiers_model->getAllModiersByRPCode($rpCode);
 		return $data;
