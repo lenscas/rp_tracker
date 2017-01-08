@@ -25,8 +25,8 @@ class Character_model extends MY_model{
 		if(!$player){
 			return array("success"=>false,"error"=>"User did not join the rp.");
 		}
-		//then now, check if the player is a gm or if the character is a minion, if he is then we are going to skip the check to see if he has indeed the max amount of start stats
-		if( (! $player->is_GM) && (!$data['isMinion'])){
+		//check if the player is a gm, if he is then we are going to skip the check to see if he has indeed the max amount of start stats
+		if( (! $player->is_GM)){
 			//Lets count them all up 
 			$amount=0;
 			foreach($data['stats'] as $key=>$value){
@@ -37,22 +37,25 @@ class Character_model extends MY_model{
 				return array("success"=>false,"error"=>"User did not set a correct amount of stats.");
 			}
 		}
+		//only GM's are allowed to make hidden characters
+		$tags=[];
+		if($player->is_GM && ! empty($data['isHidden']) && $data["isHidden"]){	
+			$tags[]="hidden";
+		}
+		unset($data['isHidden']);
 		//copy over the stats as they need to be inserted seperatly and then unset them to prevent problems
 		$stats=$data['stats'];
 		unset($data['stats']);
-		//check if the checkbox for isMinion was checked and make the char a minion if it is
-		if(isset($data['isMinion'])){
-			if($data['isMinion']){
-				$data['isMinion']=1;
-			} else {
-				$data['isMinion']=0;
-			}
-		}else {
-			$data['isMinion']=0;
-		}
 		//get all the abilities in a seperate array as they are needed later
 		$abilities=$data['abilities'];
-		
+		//if the user submitted an url as picture we need to set that up correct as well
+		$hasGivenURL=false;
+		if(!empty($data["appearancePictureUrl"]) && $data["appearancePictureUrl"]!=""){
+			$data["isLocalImage"]=true;
+			$hasGivenURL=true;
+			$data["appearancePicture"]=$data["appearancePictureUrl"];
+		}
+		unset($data["appearancePictureUrl"]);
 		//remove the abilities from the insert list as they need to be inserted seperatly
 		unset($data['abilities']);
 		$data['playerId']=$player->id;
@@ -76,7 +79,9 @@ class Character_model extends MY_model{
 		//now its time to insert the stats. First we load in the modifiers model
 		$this->load->model("Modifiers_model");
 		$this->Modifiers_model->insert_batch($data['charId'],$stats,true);
-		return array("success"=>true,"data"=>$data);
+		$this->load->model("Tag_model");
+		$this->Tag_model->linkCharWIthTagByRoleBatch($data["charId"],$tags);
+		return array("success"=>true,"data"=>$data,"hasGivenURL"=>$hasGivenURL);
 	}
 	public function setPicture($charId,$fileName,$needChecks=true){
 		if($needChecks){
@@ -97,7 +102,6 @@ class Character_model extends MY_model{
 										characters.backstory,
 										characters.personality,
 										characters.code,
-										characters.isMinion,
 										characters.notes"
 									)
 					->from("characters")
@@ -127,7 +131,6 @@ class Character_model extends MY_model{
 												characters.backstory,
 												characters.personality,
 												characters.code,
-												characters.isMinion,
 												characters.notes")
 							->from("rolePlays")
 							->join("players","rolePlays.id=players.rpId")
