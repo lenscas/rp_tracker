@@ -73,7 +73,7 @@
 				<div class="form-group row">
 					<label class="col-sm-2 col-form-label">Age</label>
 					<div class="col-md-10">
-						<input type="text" required class="form-control required" id="age" name="age" placeholder="character age">
+						<input type="number" required class="form-control required" id="age" name="age" placeholder="character age">
 						<small id="nameHelp" class="form-text text-muted">This is the age of your character</small>
 					</div>
 				</div>
@@ -127,7 +127,15 @@
 				<textarea id="personality" name="personality"></textarea> -->
 			</div>
 			<div id="screen4" style="display:none">
-				<div id="statContainer" class="panel-group"></div>
+				
+				<div class="panel-group">
+					<div class="row">
+						<div class="col-md-4 col-md-offset-4" >
+							<h4 id="totalStatCounter">You can assign {left} out of {total}</h4>
+						</div>
+					</div>
+					<div id="statContainer"></div>
+				</div>
 			</div>
 			<div id="screen5" style="display:none">
 				<h3>Abilities</h3>
@@ -160,6 +168,24 @@ function showError(error){
 	$("#errors").show()
 	$("#errorMessage").empty().html(error)
 }
+function getTotalStatsUsed(){
+	let totalStats=0;
+	let error = false
+	$('.statInput').each(function(index){
+		let stat=Number($(this).val())
+		if(!(stat =="" || isNaN(stat))){
+			totalStats=totalStats+stat
+		} else {
+			error=true
+		}
+	})
+	return {hasError:error,total:totalStats}
+}
+function updateStatCounter(){
+	let res=getTotalStatsUsed()
+	let allocatedStatsLeft =CONFIG.max.startingStatAmount- res.total
+	$("#totalStatCounter").empty().html("You can assign "+allocatedStatsLeft+" out of "+CONFIG.max.startingStatAmount)
+}
 $.ajax({
 	url		:	"<?php echo base_url("index.php/api/config/".$rpCode) ?>",
 	method	:	"GET",
@@ -190,6 +216,7 @@ $.ajax({
 			}
 			$(template).find(".statDesc").empty().html(useDescription)
 			$(template).clone().appendTo($("#statContainer"))
+			updateStatCounter()
 		})
 		$(template).remove()
 		
@@ -223,6 +250,9 @@ $(".pageSwap").on("click",function(event){
 		}
 	}
 })
+$("body").on("change",".statInput",function(){
+	updateStatCounter()
+})
 $("#creatCharacter").on("click",function(event){
 	event.preventDefault()
 	var canPost=true
@@ -243,25 +273,17 @@ $("#creatCharacter").on("click",function(event){
 		}
 	})
 	if(canPost){
-		$('.statInput').each(function(index){
-			let stat=Number($(this).val())
-			console.log(stat)
-			if(stat !=""){
-				totalStatAmount=totalStatAmount+stat
-			} else {
-				error="one or more stats are not filled in or is not a number";
-				console.log("on stat")
-				console.log($(this))
-				canPost=false
-				return false
-			}
-		})
-	}
-	if(canPost){
-		if(totalStatAmount!=CONFIG.max.startingStatAmount){
-			error="The amount of stats you gave does not equal to the amount your character needs";
-			console.log(totalStatAmount)
+		let res = getTotalStatsUsed()
+		if(res.hasError){
 			canPost=false
+			error = "One or more stats are not filled in or are not a number"
+		}
+		if(canPost){
+			if(res.total!=CONFIG.max.startingStatAmount){
+				error="The amount of stats you gave does not equal to the amount your character needs";
+				console.log(totalStatAmount)
+				canPost=false
+			}
 		}
 	}
 	if(canPost){
