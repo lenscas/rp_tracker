@@ -67,7 +67,7 @@
 			if(! GLOBAL_IS_GM){
 				$(charRowTemplate).find(".remove").remove()
 			}
-			$.each(data,function(key,value){
+			$.each(data.battles,function(key,value){
 				$(battleName).html(value.name)
 				$(man).attr("href","<?php echo base_url("index.php/rp/battle/manage")?>/"+value.id)
 				$(battleTemplate).find(".buttonContainers").empty()
@@ -78,9 +78,13 @@
 				$.each(value.characters,function(charKey,charValue){
 					$(charRowTemplate).find(".name").empty().html(charValue.name)
 					$(charRowTemplate).find(".turn").empty().html(charValue.turnOrder)
-					$(charRowTemplate).find(".lookAt").attr("href","<?php echo base_url("index.php/rp/character/view")?>/"+charValue.code)
+					if(charValue.code){
+						console.log(charValue)
+						$(charRowTemplate).find(".lookAt").attr("href","<?php echo base_url("index.php/rp/character/view")?>/"+charValue.code).show()
+					} else {
+						$(charRowTemplate).find(".lookAt").hide()
+					}
 					if(GLOBAL_IS_GM){
-						console.log("test")
 						$(charRowTemplate).find(".lookAt").data("charcode",charValue.code)
 					}
 					if(charValue.isTurn==1){

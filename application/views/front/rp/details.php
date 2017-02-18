@@ -34,6 +34,8 @@
 		<div class="row">
 			<h3><a href="<?php echo base_url("index.php/rp/character/list/".$rpCode )?>">All characters</a></h3>
 			<div id="characters"></div>
+			<h3>NPC's</h3>
+			<div id="npc"></div>
 		</div>
 		
 	</div>
@@ -50,18 +52,18 @@
 		$("#abilities").html(data.startingAbilityAmount)
 		$("#stats").html(data.startingStatAmount)
 		$("#sheet").html(data.statSheetName)
-		var charRows=$("#characters")
+		let charRows=$("#characters")
+		let hiddenCharRows = $("#npc")
 		if(data.characters){
 			$.each(data.characters,function(key,value){
-				$(charRows).append('<h4 id="code'+value.code+'" class="character"><a>'+value.name+'</a></h4>')
+				if(value.code){
+					$(charRows).append('<a href="<?php echo base_url("index.php/rp/character/view") ?>/'+value.code+'"><h4 id="code'+value.code+'" class="character">'+value.name+'</h4></a>')
+				} else {
+					hiddenCharRows.append("<p>"+value.name+"</p>")
+				}
+				
 			})
 		}
 	}
-	})
-	$("#characters").on("click",".character",function(event){
-		event.preventDefault()
-		var id=$(this).attr("id")
-		var cleanId=id.replace("code","")
-		window.location="<?php echo base_url("index.php/rp/character/view")?>/"+cleanId
 	})
 </script>

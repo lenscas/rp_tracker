@@ -16,6 +16,10 @@
 .bg-success-dataTables-fix {
 	background-color: #dff0d8 !important;
 }
+.hiddenCharacter {
+	background-color: black !important;
+	color : white !important;
+}
 </style>
 <table id="template" style="display:none">
 	<tr class="stats">
@@ -142,6 +146,7 @@
 //these are used to store data that is needed everywhere. The CHAR_LIST is a list containing all the data from each character and all the modifiers on them. 
 //The RP_CONFIG is a list with all the settings of this rp.
 CHAR_LIST={}
+HIDDEN_LIST=[]
 RP_CONFIG={}
 
 //this function is used to fill in the table containing the stats.
@@ -152,21 +157,30 @@ function fillInStatTable(){
 		method	:	"GET",
 		dataType:	"json",
 		success	:	function(data){
+			console.log(data)
 			//first, we need to fill in the CHAR_LIST.
 			//loop over all the characters
 			$.each(data.characters,function(key,value){
-				//give them a place in the list
-				CHAR_LIST[value.code]=value
-				CHAR_LIST[value.code]["stats"]={}
+				if(value.code){
+					//give them a place in the list
+					CHAR_LIST[value.code]=value
+					CHAR_LIST[value.code]["stats"]={}
+				} else {
+					HIDDEN_LIST.push(value)
+				}
+				
 			})
 			//now loop over all the modifiers and insert them to the correct character
-			$.each(data.modifiers,function(key2,value2){
-				if(! CHAR_LIST[value2.code]['stats'][value2.statId]){
-					CHAR_LIST[value2.code]["stats"][value2.statId]=[]
-				}
-				//we put the stat in the correct place
-				CHAR_LIST[value2.code]["stats"][value2.statId].push(value2)
-			})
+			if(data.modifiers){
+				$.each(data.modifiers,function(key2,value2){
+					if(! CHAR_LIST[value2.code]['stats'][value2.statId]){
+						CHAR_LIST[value2.code]["stats"][value2.statId]=[]
+					}
+					//we put the stat in the correct place
+					CHAR_LIST[value2.code]["stats"][value2.statId].push(value2)
+				})
+			}
+			
 			//now lets use this list to fill in the table
 			var statBody=$("#charStatsList")
 			$.each(CHAR_LIST, function(charKey,charValue){
@@ -178,6 +192,16 @@ function fillInStatTable(){
 						amount=amount+Number(modValue.value)
 					})
 					$(row).append('<td class="stat" id="cell'+charKey+statKey+'" data-statid="'+statKey+'">'+amount+"</td>")
+				})
+			})
+			//now its time to print all the hidden characters
+			$.each(HIDDEN_LIST,function(key,value){
+				let row = $('<tr class="hiddenCharacter"><td>'+value.name+'</td></tr>')
+				$(statBody).append(row)
+				//to make sure dataTables does not complain we need to append as many collums as there are in the table head.
+				//thus we add 1 column to the row for each stat there is.
+				$.each(RP_CONFIG.statSheet,function(){
+					row.append("<td>0</td>")
 				})
 			})
 			$("#charStatsTable").DataTable()
@@ -244,14 +268,18 @@ $.ajax({
 	method	:	"GET",
 	dataType:	"json",
 	success	:	function(data){
-		var list	=	$("#charAbilityList")
-		var template=	$("#template").find(".abilities")
-		$.each(data,function(key,value){
-			$.each(value,function(key2,value2){
-				$(template).find("."+key2).empty().html(value2)
+		//make sure there actually where abilities found
+		console.log(data)
+		if(data){
+			var list	=	$("#charAbilityList")
+			var template=	$("#template").find(".abilities")
+			$.each(data,function(key,value){
+				$.each(value,function(key2,value2){
+					$(template).find("."+key2).empty().html(value2)
+				})
+				$(template).clone().appendTo(list)
 			})
-			$(template).clone().appendTo(list)
-		})
+		}
 		$("#charAbilityTable").DataTable()
 	}
 })

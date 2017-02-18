@@ -134,7 +134,11 @@
 				<div id="abilitiesContainer"></div>
 			</div>
 			<div class="input-group" style="margin-top:5px; width:100%">
-				<div class="col-md-6"></div>
+				<div class="col-md-6" >
+					<div class="checkbox" id="isHidden">
+						<label><input type="checkbox"  name="isHidden" value="true">Hidden NPC</label>
+					</div>
+				</div>
 				<div class="col-md-6">
 					<button id="creatCharacter" class="btn btn-success pull-right">Create</button>
 				</div>
@@ -147,7 +151,9 @@
 	</div>
 </div>
 <script>
-
+if(!GLOBAL_IS_GM){
+	$("#isHidden").hide();
+}
 var ON_SCREEN=1
 var CONFIG={}
 function showError(error){

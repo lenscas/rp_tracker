@@ -4,14 +4,15 @@ class Modifiers_model extends MY_model {
 	public function __construct(){
 		parent::__construct();
 	}
-	public function getAllModiersByRPCode($rpCode){
-		return	$this->db->select("modifiers.name,
+	private $batchSelect="modifiers.name,
 				modifiers.value,
 				modifiers.countDown,
 				modifiers.id AS modifiersId,
 				statsInSheet.name AS statName,
 				statsInSheet.id as statId,
-				characters.code")
+				characters.code";
+	public function getAllModiersByRPCode($rpCode){
+		return	$this->db->select($this->batchSelect)
 				->from("rolePlays")
 				->join("players","players.rpId=rolePlays.id")
 				->join("characters","characters.playerId=players.id")
@@ -23,6 +24,33 @@ class Modifiers_model extends MY_model {
 				->get()
 				->result_array();
 	}
+	//this is pretty much the same as getAllModiersByRPCode except it works on a list instead of getting everything for each character in an rp
+	public function getAllModsFromCharList($charList){	
+		$count=0;
+		$this->db->select($this->batchSelect)
+		->from("rolePlays")
+		->join("players","players.rpId=rolePlays.id")
+		->join("characters","characters.playerId=players.id")
+		->join("modifiers","modifiers.charId=characters.id")
+		->join("statsInSheet","statsInSheet.id=modifiers.statId");
+		foreach($charList as $key=>$value){
+			if(isset($value->code)){
+				$this->db->or_where("characters.code",$value->code);
+				$count++;
+			}
+			
+		}
+		if($count){
+			return	$this->db->order_by("characters.id")
+				->order_by("modifiers.statId")
+				->get()
+				->result_array();
+		} else {
+			$this->db->reset_query();//we don't want to execute it as the list was empty. Thus lets reset the query builder
+		}
+		
+	}
+
 	public function insert_batch($charId,$data,$isBase=false){
 		if($isBase){
 			$insertData=array();
@@ -107,5 +135,5 @@ class Modifiers_model extends MY_model {
 			return $query->row_array();
 		}
 	}
-
+	
 }

@@ -24,7 +24,8 @@ class Rp extends RP_Parent {
 		echo json_encode($data);
 	}
 	public function getRP($rpCode){
-		$rp=$this->Rp_model->getWholeRp($rpCode);
+		$isGM=$this->Rp_model->checkIfGM($this->userId,$rpCode);
+		$rp=$this->Rp_model->getWholeRp($rpCode,$isGM);
 		unset($rp->id);
 		echo json_encode($rp);
 	}

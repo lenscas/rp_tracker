@@ -76,7 +76,7 @@ class Battle_model extends MY_model{
 				->result_array();
 	}
 	public function getAllCharsInBattle($rpId,$useRPCode){
-		$this->db->select("characters.name, characters.code,charsInBattle.id, charsInBattle.battleId,charsInBattle.turnOrder,charsInBattle.isTurn")
+		$this->db->select("characters.name, characters.code, charsInBattle.battleId,charsInBattle.turnOrder,charsInBattle.isTurn")
 		->from("charsInBattle")
 		->join("characters","characters.id=charsInBattle.charId")
 		->join("battle","battle.id=charsInBattle.battleId")
@@ -88,7 +88,7 @@ class Battle_model extends MY_model{
 		}
 			$result=$this->db->group_by("charsInBattle.id")
 				->get()
-				->result_array();
+				->result();
 		/*
 		echo $this->db->last_query();
 		die;//*/
@@ -116,25 +116,33 @@ class Battle_model extends MY_model{
 		->get()
 		->result();
 	}
-	public function getBattle($battleId){
-		$battle =	$this->db->select("rolePlays.code,battle.name,battle.link")
+	public function getBattle($rpCode,$battleId,$allowHidden=false){
+		$data=["battle"=>[],"modifiers"=>[],"tags"=>[],"characters"=>[]];
+		$data["battle"] =	$this->db->select("rolePlays.code,battle.name,battle.link")
 					->from("battle")
 					->join("rolePlays","rolePlays.id=battle.rpId")
 					->where("battle.id",$battleId)
+					->where("rolePlays.code",$rpCode)
 					->limit(1)
 					->get()
 					->row();
-		if ($battle){
-			$characters=$this->getAllCharsFromBattle($battleId);
-			if($characters){
+		if ($data["battle"]){
+			$data["characters"]=$this->getAllCharsFromBattle($battleId);
+			$this->load->model("Tag_model");
+			$data["tags"] = $this->Tag_model->getAllTagsByCharList($data["characters"]);
+			if(!$allowHidden){
+				//echo "remove all hiddens";
+				$battle=$data["battle"];
+				//var_dump($data);
+				$data = $this->Tag_model->removeAllHiddenFromCharList($data["characters"],$data["tags"]);
+				$data["battle"]=$battle;
+			}
+			if($data["characters"]){
 				$this->load->model("Modifiers_model");
-				$modifiers = $this->Modifiers_model->getAllModiersByRPCode($battle->code);
-				if($modifiers){
-					return ["battle"=>$battle,"characters"=>$characters,"modifiers"=>$modifiers];
-				}
+				$data["modifiers"] = $this->Modifiers_model->getAllModsFromCharList($data["characters"]);
 			}
 			
 		}
-		return false;
+		return $data;
 	}
 }

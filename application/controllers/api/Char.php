@@ -6,9 +6,12 @@ class Char extends RP_Parent {
 		parent::__construct();
 		$this->load->model("Character_model");
 	}
-	public function getCharacter($charCode){
+	public function getCharacter($rpCode,$charCode){
 		$data=array();
-		$data=$this->Character_model->getCharacter($charCode);
+		//we want to know if the user is a gm or not as this changes if we want to display hidden characters or not
+		$this->load->model("Rp_model");
+		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpCode);
+		$data=$this->Character_model->getCharacter($charCode,false,$isGM,$rpCode);
 		if($data['success']){
 			$this->load->model("Character_model");
 			$data['abilities']=$this->Character_model->getAbilitesFromCharCode($charCode);
@@ -16,11 +19,21 @@ class Char extends RP_Parent {
 		echo json_encode($data);
 	}
 	public function getCharList($rpCode){
-		$data=$this->Character_model->getCharListByRPCode($rpCode);
+		$this->load->model("Rp_model");
+		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpCode);
+		$data=$this->Character_model->getCharListByRPCode($rpCode,$isGM);
 		echo json_encode($data);
 	}
 	public function getAbilitiesByCharInRP($rpCode){
-		$data=$this->Character_model->getAbilitiesByCharInRP($rpCode);
+		$this->load->model("Rp_model");
+		$isGM =  $this->Rp_model->checkIfGM($this->userId,$rpCode);
+		if($isGM){ //if the user is an GM we can just get all the abilities. This is quicker then getting all the abilities from characters that are not hidden
+			$data=$this->Character_model->getAbilitiesByCharInRP($rpCode);
+			
+		} else {
+			$charactersNoHidden = $this->Character_model->getCharListByRPCode($rpCode,$isGM);
+			$data = $this->Character_model->getAbilitiesByCharList($charactersNoHidden["characters"]);
+		}
 		echo json_encode($data);
 	}
 	public function createCharacter($rpCode){
