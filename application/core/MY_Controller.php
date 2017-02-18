@@ -1,6 +1,6 @@
 <?php
 class RP_Parent extends User_Parent {
-	public $userId;
+	
 	public function __construct() {
 		parent::__construct();
 		$this->userId=parent::getIdForced();
@@ -10,6 +10,7 @@ class RP_Parent extends User_Parent {
 class User_Parent extends CI_Controller {
 	//used to make sure the construct of the parent always gets executed
 	public $sessionData;
+	public $userId;
 	public function __construct() {
 		parent::__construct();
 		$this->sessionData=$this->session->get_userdata();

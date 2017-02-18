@@ -100,6 +100,9 @@
 	function updateCharSelect(charSelect,data,careAboutSelected,selectOverWrite=false){
 		$(charSelect).empty()
 		$.each(data,function(key,value){
+			if(! value.code){
+				return;
+			}
 			let selected = ""
 			if(careAboutSelected){
 				if(selectOverWrite!=false){
@@ -113,7 +116,6 @@
 				}
 			}
 			$(charSelect).append('<option value="'+value.code+'" '+selected+'>'+value.name+'</option>')
-			
 		})
 	}
 	//this depends on createBetterModList being run first
@@ -127,15 +129,20 @@
 		battleBody.empty()
 		$.each(ALL_CHARACTERS,function(key,value){
 			let charRow=$("<tr></tr>") 
-			battleBody.append(charRow)
-			$(charRow).append("<td>"+ value.name+"</td>")
-			$(charRow).append("<td>"+value.turnOrder+"</td>")
-			$.each(RP_CONFIG.statSheet,function(statKey,statValue){
-				$(charRow).append("<td>"+value.stats[statValue.id].total+"</td>")
-			})
-			if(value.isTurn==1){
-				charRow.addClass("bg-success-dataTables-fix")
-			}
+			
+				battleBody.append(charRow)
+				$(charRow).append("<td>"+ value.name+"</td>")
+				$(charRow).append("<td>"+value.turnOrder+"</td>")
+				$.each(RP_CONFIG.statSheet,function(statKey,statValue){
+					let stat=0;
+					if(value.code){
+						stat=value.stats[statValue.id].total
+					}
+					$(charRow).append("<td>"+stat+"</td>")
+				})
+				if(value.isTurn==1){
+					charRow.addClass("bg-success-dataTables-fix")
+				}
 		})
 		$("#battleTable").dataTable()
 	}
@@ -209,7 +216,6 @@
 				$("#battleName").html(data.battle.name)
 				ALL_CHARACTERS = data.characters
 				ALL_MODDIFIERS = data.modifiers
-				console.log(ALL_MODDIFIERS)
 				updateCharSelect($("#attackingCharacter"),ALL_CHARACTERS,true,attackingCharSelect)
 				updateCharSelect($("#defendingCharacter"),ALL_CHARACTERS,true,defendingCharSelect)
 				$.ajax({
@@ -219,16 +225,13 @@
 					success	:	function(data){
 						if(data.success){
 							RP_CONFIG=data.data
-							console.log(RP_CONFIG)
 							$.each(RP_CONFIG.statSheet,function(key,value){
 								STAT_ID_TO_ROLE[value.id]=value.role
 								ROLE_TO_STAT_ID[value.role]=value.id
-							
 							})
 							//we now have a list of all the modifiers and their meaning
 							//lets use this knowledge to update the better sorted modifiers
 							createBetterModList()
-							console.log(ALL_CHARACTERS)
 							updateStatSelectByChar("attackingCharacter")
 							updateStatSelectByChar("defendingCharacter")
 							updateBattleTable()
@@ -309,12 +312,9 @@
 	function updateSafeDamageButton(amount){
 		let safeDamageBTN=$("#safeDamage")
 		let state = false
-		console.log(GLOBAL_IS_GM);
 		if(amount <=0 || !GLOBAL_IS_GM){
-			console.log(" wtf")
 			state = true
 		}
-		console.log(state)
 		$(safeDamageBTN).prop("disabled",state)
 		$(safeDamageBTN).val(amount)
 	}

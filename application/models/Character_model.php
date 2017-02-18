@@ -92,37 +92,52 @@ class Character_model extends MY_model{
 		->update("characters");
 		return array("success"=>true);
 	}
-	public function getCharacter($charCode,$simple=false){
-		$char	=	$this->db->select("	characters.id,
-										characters.playerId,
-										characters.name,
-										characters.age,
-										characters.appearancePicture,
-										characters.isLocalImage,
-										characters.appearanceDescription,
-										characters.backstory,
-										characters.personality,
-										characters.code,
-										characters.notes"
-									)
-					->from("characters")
-					->where("code",$charCode)
-					->get()
-					->row_array();
+	public function getCharacter($charCode,$simple=false,$includeHidden=false,$rpCheck=false){
+		$this->db->select("	characters.id,
+							characters.playerId,
+							characters.name,
+							characters.age,
+							characters.appearancePicture,
+							characters.isLocalImage,
+							characters.appearanceDescription,
+							characters.backstory,
+							characters.personality,
+							characters.code,
+							characters.notes"
+						)
+		->from("characters")
+		->where("characters.code",$charCode);
+		if($rpCheck){
+			$this->db->where("rolePlays.code",$rpCheck)
+			->join("players","players.id=characters.playerId")
+			->join("rolePlays","rolePlays.id=players.rpId");
+		}
+		$char	=	$this->db->get()->row();
+		if($char){ //if the character does not exist we don't need to run this code, at all
+			$this->load->model("Tag_model");
+			$char->tags = $this->Tag_model->getTagsOnCharacter($char->id); //we want all the tags regardless if its a simple get or not.
+			if(!$includeHidden){
+				$isHidden=$this->Tag_model->checkForTagRole(false,"Hidden",$char->tags);//check if there is a hidden tag. We don't need to make another query as we already have all the tags
+				if($isHidden){
+					$char=null;	//we want to make sure the rest of the program behaves EXACTLY the same as when a character does not exist.
+								//The easiest way to do it is by setting it null, as that is the same value as when it does not exist
+				}
+			}
+		}
 		if($simple){
 			return $char;
 		}
 		if($char){
 			$this->load->model("Modifiers_model");
-			$char['stats']=$this->Modifiers_model->getStatsFromChar($char['id']);
-			unset($char['id']);
+			$char->stats=$this->Modifiers_model->getStatsFromChar($char->id);
+			unset($char->id);
 			return array("success"=>true,"character"=>$char);
 		} else {
 			return array("success"=>false,"error"=>"This character does not exist");
 		}
 	
 	}
-	public function getCharListByRPCode($rpCode){
+	public function getCharListByRPCode($rpCode,$includeHidden=false){
 		$data=array();
 		$data['characters']=$this->db->select("	characters.playerId,
 												characters.name,
@@ -139,11 +154,24 @@ class Character_model extends MY_model{
 							->join("characters","characters.playerId=players.id")
 							->where("rolePlays.code",$rpCode)
 							->get()
-							->result_array();
+							->result();
 		//print_r($data);
 		//echo $this->db->last_query();
-		$this->load->model("Modifiers_model");
-		$data['modifiers']=$this->Modifiers_model->getAllModiersByRPCode($rpCode);
+		//var_dump($data);
+		if($data["characters"]){
+			$this->load->model("Tag_model");
+			$data["tags"]=$this->Tag_model->getAllTagsInRP(false,$rpCode);
+			if(!$includeHidden){
+				$data = $this->Tag_model->removeAllHiddenFromCharList($data["characters"],$data["tags"]);
+				//var_dump($data);
+			}
+			$this->load->model("Modifiers_model");
+			if($includeHidden){
+				$data['modifiers']=$this->Modifiers_model->getAllModiersByRPCode($rpCode); //this is faster then looping over all the characters and getting the modifiers that way
+			} else {
+				$data["modifiers"]=$this->Modifiers_model->getAllModsFromCharList($data["characters"]);
+			}
+		}
 		return $data;
 	}
 	public function getAbilitiesByCharInRP($rpCode){
@@ -155,7 +183,7 @@ class Character_model extends MY_model{
 				->where("rolePlays.code",$rpCode)
 				->order_by("characters.name")
 				->get()
-				->result_array();
+				->result();
 	}
 	public function getRPIdByChar($charCode=false,$charId=false){
 		$this->db->select("rolePlays.id")
@@ -185,6 +213,35 @@ class Character_model extends MY_model{
 		if($data){
 			return $data->code;
 		}
+	}
+	public function getAbilitiesByCharList($charList){
+		if(empty($charList)){
+			return;
+		}
+		$this	->db->select("characters.name,abilities.id,abilities.name as abilityName, abilities.cooldown,abilities.countDown")
+				->from("rolePlays")
+				->join("players","players.RPId=rolePlays.id")
+				->join("characters","characters.playerId=players.id")
+				->join("abilities","abilities.charId=characters.id");
+		//though the list is not empty it may be the case that all characters inside the list are hidden
+		//to get arround this we keep track of how many characters are not hidden. If there are 0 we reset the db class and return null
+		$count=0;
+		foreach($charList as $key=>$value){
+			if(isset($value->code)){
+				//echo "wtf?";
+				$this->db->where("characters.code",$value->code);
+				$count++;
+			}
+			
+		}
+		if($count<=0){
+			$this->db->reset_query();
+			return;
+		}
+		//->where("rolePlays.code",$rpCode)
+		return	$this->db->order_by("characters.name")
+				->get()
+				->result();
 	}
 	
 }

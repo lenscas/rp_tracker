@@ -5,6 +5,7 @@ class Battle extends RP_Parent {
 	public function __construct(){
 		parent::__construct();
 		$this->load->model("Battle_model");
+		$this->load->model("Rp_model");
 	}
 	
 	public function createBattle(){
@@ -16,7 +17,6 @@ class Battle extends RP_Parent {
 			//get all the data
 			$data	=	parent::getPostSafe();
 			//load the RP model so we can change the rpCode into the rpId
-			$this->load->model("Rp_model");
 			$rp=$this->Rp_model->getRPByCode($data['rpCode']);
 			if($this->Rp_model->checkIfGM($this->userId,$rp->id)){
 				//prepare the post data to create the battle
@@ -43,30 +43,34 @@ class Battle extends RP_Parent {
 		}
 	}
 	public function getAllBattlesByRp($rpCode){
-		$battles		=	$this->Battle_model->getAllBattles($rpCode,true);
-		$charList		=	$this->Battle_model->getAllCharsInBattle($rpCode,true);
-		/*
-		print_r($charList);
-		print_r($battles); //*/
+		$battles	=	$this->Battle_model->getAllBattles($rpCode,true);
+		$charList	=	$this->Battle_model->getAllCharsInBattle($rpCode,true);
+		$this->load->model("Tag_model");
+		$tags = $this->Tag_model->getAllTagsByCharList($charList);
+		//we need to strip away the character code from all characters if the user is not a GM
+		$isGM		=	$this->Rp_model->checkIfGM($this->userId,$rpCode);
+		if(!$isGM){
+			$res = $this->Tag_model->removeAllHiddenFromCharList($charList,$tags);
+			//var_dump($res);
+			$tags=$res["tags"];
+			$charList = $res["characters"];
+		}
 		foreach($battles as $battleKey=>$battleValue){
 			$battles[$battleKey]['characters']=array();
 			foreach($charList as $charKey=>$charValue){
-				if($charValue['battleId']==$battleValue['id']){
-					//echo "it found a match";
+				if($charValue->battleId==$battleValue['id']){
 					$battles[$battleKey]['characters'][]=$charList[$charKey];
 					unset($charList[$charKey]);
 				}
 			}
 		}
-		echo json_encode($battles);
+		echo json_encode(["battles"=>$battles,"tags"=>$tags]);
 	}
-	public function getBattle($battleId){
-		$battleData= $this->Battle_model->getBattle($battleId);
-		if($battleData){ 
-			echo json_encode($battleData);
-		} else {
-			die("battle does not exist");
-		}
+	public function getBattle($rpCode,$battleId){
+		
+		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpCode);
+		$battleData= $this->Battle_model->getBattle($rpCode,$battleId,$isGM);
+		echo json_encode($battleData);
 	}
 
 }

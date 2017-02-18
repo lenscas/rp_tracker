@@ -85,21 +85,22 @@ class Rp_model extends MY_Model {
 				->get()
 				->result_array();
 	}
-	public function getWholeRp($rpCode){
+	public function getWholeRp($rpCode,$includeHidden=false){
 		$rp=$this->getRPByCode($rpCode);
 		if($rp){
-			$rp->characters	=	$this->db->select("characters.name,characters.code")
-								->from("characters")
-								->join("players","players.id=characters.playerId")
-								->where("players.rpId",$rp->id)
-								->get()
-								->result_array();
+			$this->load->model("Character_model");
+			$data =$this->Character_model->getCharListByRPCode($rpCode,$includeHidden);
+			$rp->characters=[];
+			if($data){
+				$rp->characters = $data["characters"];
+			}
 			$rp->username	=	$this->db->select("users.username")
 								->from("users")
 								->where("id",$rp->creator)
 								->get()
 								->row()
 								->username;
+			
 		}
 		
 		return $rp;

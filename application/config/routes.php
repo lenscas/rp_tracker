@@ -89,7 +89,7 @@ $route['translate_uri_dashes'] = FALSE;
 		//the first (:any) refers to the rp_code
 		$route["api/characters/(:any)"]["GET"]        =  "api/Char/getCharList/$1";
 		$route["api/characters/(:any)"]["POST"]       =  "api/Char/CreateCharacter/$1"; //TODO not yet implemented
-		$route['api/characters/(:any)/(:any)']["GET"] =  "api/Char/getCharacter/$2";
+		$route['api/characters/(:any)/(:any)']["GET"] =  "api/Char/getCharacter/$1/$2";
 		
 		
 		//$route['api/character/(:any)']      =  "api/Character/show/$1/false"; //need to checkout what this was for it seems. 
@@ -113,5 +113,5 @@ $route['translate_uri_dashes'] = FALSE;
 	//battle
 		$route['api/battle/(:any)']["POST"]               =  "api/Battle/createBattle";
 		$route['api/battle/(:any)']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";
-		$route['api/battle/(:any)/(:any)']["GET"]  =  "api/Battle/getBattle/$2";
+		$route['api/battle/(:any)/(:any)']["GET"]  =  "api/Battle/getBattle/$1/$2";
 	
