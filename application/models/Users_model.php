@@ -88,5 +88,18 @@ class Users_model extends MY_Model {
 					->row_array();
 		return $data;
 	}
+	public function getGravFromEmail($email){
+		$url = 'https://www.gravatar.com/avatar/';
+		$url .= md5( strtolower( trim( $email ) ) );
+		$url .= "?&d=http://claimygift.com/uploads/avatars/noavatar.png";
+		return $url;
+	}
+	public function replaceEmailWithGravInList($userList){
+		foreach($userList as $key=>$value){
+			$userList[$key]["avatar"]	=	$this->getGravFromEmail($value["email"]);
+			unset($userList[$key]["email"]);
+		}
+		return $userList;
+	}
 
 }

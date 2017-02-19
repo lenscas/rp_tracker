@@ -6,7 +6,12 @@
 		<input class="code" type="hidden">
 		<div class="col-md-12">
 			<div class="col-md-2">
-				<p class="creatorName"></p>
+				 <div class="thumbnail">
+					<img class="creatorAvatar img-responsive" style="width:100%">
+					<div class="caption">
+						<p class="creatorName"></p>
+					</div>
+				</div>
 			</div>
 			<div class="col-md-10">
 				<div class="row">
@@ -29,6 +34,7 @@ function renderRPs(){
 	console.log(ALL_RPS)
 	$.each(ALL_RPS,function(key,value){
 		console.log($(template).find(".creatorName"))
+		$(template).find(".creatorAvatar").attr("src",value.avatar+"&s=200")
 		$(template).find(".creatorName").html(value.username)
 		$(template).find(".rpName").html(value.name+"#"+value.code)
 		$(template).find(".code").val(value.code)

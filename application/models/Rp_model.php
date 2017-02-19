@@ -78,12 +78,18 @@ class Rp_model extends MY_Model {
 				->row();
 	}
 	public function getAllRPs(){
-		return $this->db->select("rolePlays.name, rolePlays.description, users.username,rolePlays.code")
+		$rpList =  $this->db->select("rolePlays.name, rolePlays.description,users.email, users.username,rolePlays.code")
 				->from("rolePlays")
 				->where("rolePlays.isPrivate",0)
 				->join("users","users.id=rolePlays.creator")
 				->get()
 				->result_array();
+		if($rpList){
+			$this->load->model("Users_model");
+			//echo "wtf!";
+			$rpList = $this->Users_model->replaceEmailWithGravInList($rpList);
+		}
+		return $rpList;
 	}
 	public function getWholeRp($rpCode,$includeHidden=false){
 		$rp=$this->getRPByCode($rpCode);
