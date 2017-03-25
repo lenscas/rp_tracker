@@ -87,12 +87,17 @@ $route['translate_uri_dashes'] = FALSE;
 		//$route['api/profile/(:any)'] =  "api/Users/profile/$1";
 	//characters
 		//the first (:any) refers to the rp_code
+		//the old routes. THESE WILL BE REMOVED!
 		$route["api/characters/(:any)"]["GET"]        =  "api/Char/getCharList/$1";
 		$route["api/characters/(:any)"]["POST"]       =  "api/Char/CreateCharacter/$1"; //TODO not yet implemented
 		$route['api/characters/(:any)/(:any)']["GET"] =  "api/Char/getCharacter/$1/$2";
-		
-		
-		//$route['api/character/(:any)']      =  "api/Character/show/$1/false"; //need to checkout what this was for it seems. 
+		//the new and better routes. These are the ones you want to use
+		//these are not yet tested but should work.
+		$route["api/rp/(:any)/characters"]["GET"]           = "api/Char/getCharList/$1";
+		$route["api/rp/(:any)/characters"]["POST"]          = "api/Char/CreateCharacter/$1";
+		$route["api/rp/(:any)/characters/(:any)"]["GET"]    = "api/Char/getCharacter/$1/$2";
+		//this one has no old equivalant and will not get one.
+		$route["api/rp/(:any)/characters/(:any)"]["PATCH"]  = "api/Char/patchCharacter/$1/$2";
 	//ability list
 		$route['api/abilities/(:any)']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$1";
 	//rp

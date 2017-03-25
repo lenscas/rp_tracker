@@ -15,6 +15,11 @@ class Char extends RP_Parent {
 		if($data['success']){
 			$this->load->model("Character_model");
 			$data['abilities']=$this->Character_model->getAbilitesFromCharCode($charCode);
+			$data["canEdit"]=false;
+			if($data["character"]->userId==$this->userId || $isGM){
+				unset($data["character"]->userId);
+				$data["canEdit"]=true;
+			}
 		}
 		echo json_encode($data);
 	}
@@ -68,7 +73,65 @@ class Char extends RP_Parent {
 			echo json_encode(["success"=>false,"error"=>"some or more fields where not filled in","data"=>parent::getPostSafe()]);
 		}
 	}
-
-
+	private function easyArrayAccess($array,$field,$default=null){
+		if(isset($array[$field])){
+			return $array[$field];
+		}
+		return $default;
+	}
+	public function patchCharacter($rpCode,$charCode){
+		$data = $this->getPutSafe();
+		$isGM = false;
+		try {
+			$mayEdit = $this->Character_model->checkIfUserMayEdit($rpCode,$charCode,$this->userId,$isGM);
+		} catch (Exception $e) {
+			if($e->getMessage()=="Character does not exist"){
+				show_404();
+				return;
+			} else {
+				throw $e;
+			}
+			
+		}
+		if(!$mayEdit){
+			echo json_encode(["error"=>"You are not allowed to change this character","success"=>false]);
+			return;
+		}
+		$stats						=	$this->easyArrayAccess($data,"stats");
+		$abilities					=	$this->easyArrayAccess($data,"abilities");
+		$character					=	[
+			"name"					=>	$this->easyArrayAccess($data,"name",false),
+			"age"					=>	$this->easyArrayAccess($data,"age",false),
+			"appearancePicture"		=>	$this->easyArrayAccess($data,"appearancePicture",false),
+			"appearanceDescription"	=>	$this->easyArrayAccess($data,"appearanceDescription",false),
+			"backstory"				=>	$this->easyArrayAccess($data,"backstory",false),
+			"personality"			=>	$this->easyArrayAccess($data,"personality",false),
+			"notes"					=>	$this->easyArrayAccess($data,"notes",false),
+			"hiddenData"			=>	$this->easyArrayAccess($data,"hiddenData",false)
+		];
+		foreach($character as $key=>$value){
+			if($value===false){
+				unset($character[$key]);
+			}
+		}
+		if(!empty($character)){
+			$this->Character_model->updateCharacter($charCode,$character,true);
+		}
+		if($stats){
+			$this->load->model("Modifiers_model");
+			$res = $this->Modifiers_model->updateBaseStats($stats, $isGM);
+			if(!$res["success"]){
+				echo json_encode($res);
+				return;
+			}
+		}
+		if($abilities){
+			$res = $this->Character_model->updateAbilities($charCode,$abilities,$isGM,true);
+			if(!$res["success"]){
+				echo json_encode($res);
+				return;
+			}
+		}
+		echo json_encode(["success"=>true]);
+	}
 }
-?>

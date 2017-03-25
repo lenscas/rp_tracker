@@ -5,7 +5,7 @@ class Character_model extends MY_model{
 		parent::__construct();
 	}
 	public function getAbilitesFromCharCode($code){
-		return	$this->db->select("abilities.name,abilities.cooldown,abilities.description")
+		return	$this->db->select("abilities.name,abilities.cooldown,abilities.description,abilities.id")
 				->from("abilities")
 				->join("characters","characters.id=abilities.charId")
 				->where("characters.code",$code)
@@ -103,13 +103,15 @@ class Character_model extends MY_model{
 							characters.backstory,
 							characters.personality,
 							characters.code,
-							characters.notes"
+							characters.notes,
+							players.userId"
 						)
 		->from("characters")
-		->where("characters.code",$charCode);
+		->join("players","players.id=characters.playerId")
+		->where("characters.code",$charCode)
+		->limit(1);
 		if($rpCheck){
 			$this->db->where("rolePlays.code",$rpCheck)
-			->join("players","players.id=characters.playerId")
 			->join("rolePlays","rolePlays.id=players.rpId");
 		}
 		$char	=	$this->db->get()->row();
@@ -155,15 +157,11 @@ class Character_model extends MY_model{
 							->where("rolePlays.code",$rpCode)
 							->get()
 							->result();
-		//print_r($data);
-		//echo $this->db->last_query();
-		//var_dump($data);
 		if($data["characters"]){
 			$this->load->model("Tag_model");
 			$data["tags"]=$this->Tag_model->getAllTagsInRP(false,$rpCode);
 			if(!$includeHidden){
 				$data = $this->Tag_model->removeAllHiddenFromCharList($data["characters"],$data["tags"]);
-				//var_dump($data);
 			}
 			$this->load->model("Modifiers_model");
 			if($includeHidden){
@@ -242,6 +240,79 @@ class Character_model extends MY_model{
 		return	$this->db->order_by("characters.name")
 				->get()
 				->result();
+	}
+	//the $isGM is passed as reference and will be filled with 
+	public function checkIfUserMayEdit($rpCode,$charCode,$userId,&$isGM=null){
+		$mayEdit = false;
+		//get the character
+		$res =	$this->db->select("players.userId")
+				->from("characters")
+				->join("players","players.id=characters.playerId")
+				->where("characters.code",$charCode)
+				->limit(1)
+				->get()
+				->row();
+		if(!$res){
+			//character does not exist. BURN THE HOUSE DOWN!
+			throw new Exception("Character does not exist");
+		} elseif($res->userId==$userId){
+			//the user is the creator of this character thus he is allowed to edit it
+			$mayEdit=true;
+		}
+		//no else here as $mayEdit defaults to false anyway
+		//look if the user is an GM
+		$this->load->model("Rp_model");
+		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpCode);
+		//return true if either he is an GM or if $mayEdit is true. 
+		return $isGM || $mayEdit;
+	}
+	public function updateCharacter($charId,$data,$useCode=false){
+		if($useCode){
+			$this->db->where("code",$charId);
+		} else {
+			$this->db->where("id",$charId);
+		}
+		$this->db->limit(1)->update("characters",$data);
+	}
+	public function updateAbilities($charId,$data,$isGM=true,$useCode=false){
+		if(!$isGM){
+			$this->load->model("Rp_model");
+			$rpCode = $this->getRPCodeByChar($charId,$useCode);
+			if(!$rpCode){
+				return ["success"=>false,"error"=>"character does not exist"];
+			}
+			$config = $this->Rp_model->getRPConfigByCode($rpCode);
+			if(!$config["success"]){
+				return $config;
+			}
+			if(count($data)>$config["success"]->startingAbilityAmount){
+				return ["success"=>false,"error"=>"Too many abilities to edit"];
+			}
+		}
+		if($useCode){
+			$res = $this->db->select("id")->from("characters")->limit(1)->where("code",$charId)->get()->row();
+			if(!$res){
+				return ["success"=>false,"error"=>"character does not exist"];
+			}
+			$charId = $res->id;
+		}
+		foreach($data as $key=>$value){
+			$this->db->where("id",$key)
+			->limit(1)
+			->where("charId",$charId);
+			if(isset($value["cooldown"])){
+				$this->db->set("cooldown",$value["cooldown"]);
+			}
+			if(isset($value["description"])){
+				$this->db->set("description",$value["description"]);
+			}
+			if(isset($value["name"])){
+				$this->db->set("name",$value["name"]);
+			}
+			$this->db->update("abilities");
+		}
+		return ["success"=>true];
+		
 	}
 	
 }
