@@ -29,18 +29,31 @@ class Users_model extends MY_Model {
 		}
 	}
 	public function register($data){
+		$errors=[
+			"error"=>RP_ERROR_NONE,
+			"on"=>array(),
+			"values"=>array()
+		];
 		$user	=	$this->db->select("*")
 					->from("users")
 					->where("username",$data["username"])
 					->or_where("email",$data['mail'])
+					->limit(1)
 					->get()
 					->row_array();
 		if($user){
 			if($user['email']==$data['mail']){
-				return "This email is already in use, please choose a different one.";
+				$errors["error"]=RP_ERROR_DUPLICATE;
+				$error["on"][]="email";
+				$error["value"][]=$data["email"];
 			}
 			if($user['username']==$data['username']){
-				return "This username is already in use, please choose a different one.";
+				$errors["error"]=RP_ERROR_DUPLICATE;
+				$error["on"][]="username";
+				$error["value"][]=$data["username"];
+			}
+			if($errors["error"]!=RP_ERROR_NONE){
+				return $errors;
 			}
 		}
 		$id=parent::generateId("users");
@@ -62,6 +75,7 @@ class Users_model extends MY_Model {
 		tml><body><h1>Uw account at My MUD is ready to be activated</h1><p>You can activate it <a href="'.base_url("index.php/activation/".$randomActivationString).'">here</a></p></body></html>');
 
 		$this->email->send();
+		return $errors;
 	}
 	//activates the user so he can play. As that is what everyone wants to do these days.
 	public function activate($activateString){
@@ -84,6 +98,7 @@ class Users_model extends MY_Model {
 		$data	=	$this->db->select("username")
 					->from("users")
 					->where("id",$userId)
+					->limit(1)
 					->get()
 					->row_array();
 		return $data;

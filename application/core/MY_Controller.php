@@ -73,7 +73,14 @@ class User_Parent extends CI_Controller {
 	//used to force a login
 	public function forceLogIn(){
 		if(!$this->session->has_userdata("userId")){
-			redirect("login");
+			//if the call is done using ajax we want to be nice and tell the client that he isn't autorazied
+			//if the call is done normally from the browser we just want to redirect
+			if($this->input->is_ajax_request()){
+				$this->output->set_status_header(403,$extraText)->_display();
+			} else {
+				redirect("login");
+			}
+			die();
 		}
 	}
 	//used to force a log in and get the user id as well
@@ -124,6 +131,7 @@ class User_Parent extends CI_Controller {
 			echo "test";
 		}
 		$this->load->view("front/defaults/rp_header",$rpHeaderData);
+		$this->load->view("front/defaults/alert",["hasRPHeader"=>true]);
 		$this->load->view("front/".$view,$data);
 		$this->load->view("front/defaults/rp_header_end");
 		$this->load->view("front/defaults/secondSideBar");
@@ -133,6 +141,7 @@ class User_Parent extends CI_Controller {
 	public function loadWithExtra($view,$data=array(),$overWriteHeader=false){
 		$this->loadHeader($overWriteHeader);
 		$this->load->view("front/defaults/firstSideBar");
+		$this->load->view("front/defaults/alert",["hasRPHeader"=>false]);
 		$this->load->view("front/".$view,$data);
 		$this->load->view("front/defaults/secondSideBar");
 		$this->load->view("front/defaults/footer.php");
@@ -144,6 +153,154 @@ class User_Parent extends CI_Controller {
 		$this->load->view("front/defaults/footer.php");
 		
 	}
-
+}
+class API_Parent extends User_Parent{
+	public function __construct($checkLogin=true){
+		parent::__construct();
+		if($checkLogin){
+			$this->userId=parent::getIdForced();
+		}
+		$this->output->set_content_type('application/json');
+		//lets define some error codes.
+		define("RP_ERROR_NONE",0);//NO ERRORS!
+		define("RP_ERROR_DUPLICATE",1);//something that needs to be unique in the db wasn't
+		define("RP_ERROR_GENERIC",100);//a very generic error occured. :(
+		
+	}
+	//this function just uses $this->form_validation->run() to see if all the data is present and give the correct responce back to the client if it doesn't
+	//if $data= false then it uses post data, just as $this->form_validation->run() would.
+	//depending on $XSSClean it cleans the data before returning it
+	public function checkAndErr($checkOn,$data=false,$XSSClean=true,$pref=3){
+		$this->load->library('form_validation');
+		if($data!==false){
+			$this->form_validation->set_data($data);
+		}
+		foreach($checkOn as $key=>$value){
+			$this->form_validation->set_rules($value[0],$value[1],$value[2]);
+		}
+		//$this->form_validation->set_rules($checkOn);
+		if($this->form_validation->run()){
+			if($data===false){
+				$data = $this->input->post();
+			}
+			if($XSSClean){
+				$data = html_escape($data);
+			}
+			return $data;
+		} else {
+			var_dump($this->form_validation->run());
+			//seemed the request was missing some things :(
+			//Guess we need to generate an error.
+			$this->output->set_status_header(422);
+			$body = [
+				"messages" => [
+					"One or more required fields where not filled in correctly.",
+					"[ERROR]",
+					"Sorry, but the following errors have been found.\n [ERRORS]"
+				],
+				"errors" => $this->form_validation->error_array()
+			];
+			$this->outputPlusFilter($body)->_display();
+			//we don't want the program to do other stuff. So....lets die
+			die();
+		}
+	}
+	//this function is written to get arround the fact that html_escape does not work with multidimensional arrays and/or objects in objects
+	//it solves this problem by using recursion.
+	private function escapeData($data){
+		//check if we are dealing with an array or an object
+		$dataType=gettype($data);
+		if($dataType=="array" || $dataType=="object"){
+			//we are dealing with an object/array. To make it save to json_encode we need to escape all its values
+			//start by looping over it
+			foreach($data as $key=>$value){
+				//get the escaped value
+				$newData = $this->escapeData($value);
+				//because php's syntax is diffrent for setting values in objects and arrays we need to check which of the two we are dealing with
+				if($dataType=="object"){
+					//could have written it as $data->$key but I find that the {} at least help somewhat at showing what exactly goes on here
+					$data->{$key} = $newData;
+				} else {
+					$data[$key]   = $newData;
+				}
+			}
+		} else {
+			//it is something that we can escape directly, lets do it
+			$data = html_escape($data);
+		}
+		//whatever the data was that we where given, it is clean now. Lets return it.
+		return $data;
+	}
+	public function outputPlusFilter($data){
+		$data = $this->escapeData($data);
+		$this->output->set_output(json_encode($data));
+		return $this->output;
+	}
+	
+	//this function is used if a resource is made to uniformaly return stuff to the client
+	public function niceMade($errored,$urlPart,$resourceKind="",$resourceName="",$pref=3){
+		if($errored!=RP_ERROR_NONE){
+			if($errored=RP_ERROR_DUPLICATE){
+				$this->output->set_header(409);
+				$body = [
+					"messages" => [
+						"One or more given values are already in use.",
+						"[NAME] is already in use",
+						"The given [VALUE] is already in use"
+					],
+					"name"  => $resourceName,
+					"VALUE" => $resourceKind,
+					"pref"  => $pref
+				];
+				$this->outputPlusFilter($body)->_display();
+				die();
+			//expand possible errors here
+			} elseif($errored==RP_ERROR_GENERIC) {
+				//a generic error happened :(
+				$this->output->set_header(500);
+				$this->outputPlusFilter(["message"=>"Something broke, please retry later.", "errorCode"=>$errored])->_display();
+				die();
+			} else {
+				//something very weird happened....
+				//a generic error happened :(
+				$this->output->set_header(500);
+				$this->outputPlusFilter(["message"=>"This shouldn't have happened..... :('","errorCode"=>$errored])->_display();
+			}
+			//something went wrong... :(
+			//TODO implement something went wrong code
+		} else {
+		$body = [
+				//this contains some nice messages that can be displayed to the user if the client wishes to stay on the same page
+				"messages" => [
+					"The item is successfully created",
+					"The ".$resourceKind." is successfully created",
+					$resourceName." is successfully created",
+				],
+				//same as the location header.
+				"link" => base_url("index.php/api/".$urlPart),
+				"name" => $resourceName,
+				"kind" => $resourceKind,
+				"pref" => $pref
+			];
+			$this->output->set_header("Location: ".$body["link"])
+			->set_status_header(201)
+			->set_output(json_encode($body))
+			->_display();
+			die();
+		}
+	}
+	public function niceReturn($data,$responce=200,$allowOverwrite=true,$extraText=null,$die=true){
+		if(empty($data)){
+			if($allowOverwrite){
+				$responce = 404;
+			}
+		}
+		$this->output->set_status_header($responce,$extraText);
+		$this->outputPlusFilter($data);
+		if($die){
+			$this->output->_display();
+			die();
+		}
+	}
 }
 	

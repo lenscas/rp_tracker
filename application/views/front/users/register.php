@@ -1,5 +1,3 @@
-
-		<div class="col-md-8">
 			<div class="login-box"   '><!-- height:768px; max-width:1024px;width:100%; -->
 				<div class="login-box-body" style="background:none;">
 					<p class="login-box-msg">Register</p>
@@ -40,10 +38,6 @@
 				radioClass: 'iradio_square-blue',
 				increaseArea: '20%' // optional
 			});
-			function error(message){
-					$("#error").empty().html("<p>"+message+"</p>").show();
-			}
-			
 			$("#register").on("click",function(event){
 				event.preventDefault();
 				var password		=	$("#password").val()
@@ -54,27 +48,23 @@
 					var username	=	$("#username").val()
 					var mail		=	$("#mail").val()
 					if( password && username){
-						$.ajax({
-							url		:	"<?php echo base_url("index.php/api/users") ?>",
-							method	:	"POST",
-							data	:	{password	:	password, 
-									passwordCheck	:	passwordCheck,
-									username		:	username,
-									mail			:	mail
-								},
-							dataType:	"json",
-							success	:	function(data){
-								console.log(data)
-								if(!data.success){
-									error(data.error)
-								} else {
-									window.location = "<?php echo base_url("index.php/register/success") ?>"
+						doCall({
+							url    : "users",
+							method : "POST",
+							data   : {
+								password      : password,
+								passwordCheck : passwordCheck,
+								username      : username,
+								mail          : mail
+							},
+							statusCode : {
+								200 : function(data){
+								//	window.location = "<?php echo base_url("index.php/register/success") ?>"
 								}
 							}
-						
 						})
 					}
 				}
 			})
 		});
-    </script>
+	</script>

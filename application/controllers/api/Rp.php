@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Rp extends RP_Parent {
+class Rp extends API_Parent {
 	public function __construct(){
 		parent::__construct();
 		$this->load->model("Rp_model");
@@ -16,17 +16,24 @@ class Rp extends RP_Parent {
 		$this->form_validation->set_rules("statSheetCode","statSheetCode","required");
 		if($this->form_validation->run() ){
 			$data=$this->Rp_model->create($this->userId,parent::getPostSafe());
+		} else {
+			$data["error"]="Some fields are not set correctly.";
 		}
-		echo json_encode($data);
+		$code=200;
+		if(!$data["success"]){
+			$code=422;
+		}
+		parent::niceReturn($data,$code,false);
 	}
 	public function listAllRPs(){
 		$data=$this->Rp_model->getAllRPs();
-		echo json_encode($data);
+		parent::niceReturn($data);
 	}
 	public function getRP($rpCode){
 		$isGM=$this->Rp_model->checkIfGM($this->userId,$rpCode);
 		$rp=$this->Rp_model->getWholeRp($rpCode,$isGM);
 		unset($rp->id);
+		parent::niceReturn($rp);
 		echo json_encode($rp);
 	}
 	public function join($rpCode){

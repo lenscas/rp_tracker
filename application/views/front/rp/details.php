@@ -41,29 +41,35 @@
 	</div>
 </div>
 <script>
-	$.ajax({
-	url		:	"<?php echo base_url("index.php/api/rp/".$rpCode) ?>",
-	method	:	"GET",
-	dataType:	"json",
-	success	:	function(data){
-		$("#name").html(data.name+":"+data.code);
-		$("#description").html(data.description)
-		$("#creator").html(data.username)
-		$("#abilities").html(data.startingAbilityAmount)
-		$("#stats").html(data.startingStatAmount)
-		$("#sheet").html(data.statSheetName)
-		let charRows=$("#characters")
-		let hiddenCharRows = $("#npc")
-		if(data.characters){
-			$.each(data.characters,function(key,value){
-				if(value.code){
-					$(charRows).append('<a href="<?php echo base_url("index.php/rp/character/view") ?>/'+value.code+'"><h4 id="code'+value.code+'" class="character">'+value.name+'</h4></a>')
-				} else {
-					hiddenCharRows.append("<p>"+value.name+"</p>")
+	$( document ).ready(function(){
+		doCall({
+			url        : "rp/<?php echo $rpCode ?>",
+			method     : "GET",
+			statusCode : {
+				200 : function(data){
+					$("#name").html(data.name+":"+data.code);
+					$("#description").html(data.description)
+					$("#creator").html(data.username)
+					$("#abilities").html(data.startingAbilityAmount)
+					$("#stats").html(data.startingStatAmount)
+					$("#sheet").html(data.statSheetName)
+					let charRows=$("#characters")
+					let hiddenCharRows = $("#npc")
+					if(data.characters){
+						$.each(data.characters,function(key,value){
+							if(value.code){
+								$(charRows).append('<a href="<?php echo base_url("index.php/rp/character/view") ?>/'+value.code+'"><h4 id="code'+value.code+'" class="character">'+value.name+'</h4></a>')
+							} else {
+								hiddenCharRows.append("<p>"+value.name+"</p>")
+							}
+						})
+					}
+				},
+				404 : function(){
+					GLOBAL_ALERT_MAN.show("This rp could not be found :(")
+					$("#rpContainer").empty();
 				}
-				
-			})
-		}
-	}
+			}
+		})
 	})
 </script>
