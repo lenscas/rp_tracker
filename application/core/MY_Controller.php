@@ -172,9 +172,22 @@ class API_Parent extends User_Parent{
 	//depending on $XSSClean it cleans the data before returning it
 	public function checkAndErr($checkOn,$data=false,$XSSClean=true,$pref=3){
 		$this->load->library('form_validation');
-		if($data!==false){
-			$this->form_validation->set_data($data);
+		if($data===false){
+			$data= $this->input->post();
+			if(! $data){
+				$fromInput = $this->input->input_stream();
+				if(count($fromInput)==1){
+					$data = (array)json_decode($this->input->raw_input_stream);
+					if(!$data){
+						$data=$fromInput;
+					}
+				} else {
+					$data = $fromInput;
+				}
+				
+			}
 		}
+		$this->form_validation->set_data($data);
 		foreach($checkOn as $key=>$value){
 			$this->form_validation->set_rules($value[0],$value[1],$value[2]);
 		}
@@ -188,7 +201,7 @@ class API_Parent extends User_Parent{
 			}
 			return $data;
 		} else {
-			var_dump($this->form_validation->run());
+			$this->form_validation->run();
 			//seemed the request was missing some things :(
 			//Guess we need to generate an error.
 			$this->output->set_status_header(422);
