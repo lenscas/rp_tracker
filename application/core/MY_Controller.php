@@ -121,7 +121,6 @@ class User_Parent extends CI_Controller {
 		$rpHeaderData=array();
 		//echo gettype($dat)
 		if(gettype($rpData)!="array"){
-			//echo "test2";
 			$rpHeaderData=array(
 				"rpCode"	=>	$rpData,
 				"hasJoined"	=>	$this->Rp_model->checkIfJoined($this->userId,false,$rpData),
@@ -164,8 +163,10 @@ class API_Parent extends User_Parent{
 		//lets define some error codes.
 		define("RP_ERROR_NONE",0);//NO ERRORS!
 		define("RP_ERROR_DUPLICATE",1);//something that needs to be unique in the db wasn't
+		define("RP_ERROR_NOT_FOUND",2);//someting that had to be updated couldn't be found
+		define("RP_ERROR_NO_PERMISSION",3);//The user wanted to update something he had no permission for
 		define("RP_ERROR_GENERIC",100);//a very generic error occured. :(
-		
+
 	}
 	//this function just uses $this->form_validation->run() to see if all the data is present and give the correct responce back to the client if it doesn't
 	//if $data= false then it uses post data, just as $this->form_validation->run() would.
@@ -251,7 +252,7 @@ class API_Parent extends User_Parent{
 	}
 	
 	//this function is used if a resource is made to uniformaly return stuff to the client
-	public function niceMade($errored,$urlPart,$resourceKind="",$resourceName="",$pref=3){
+	public function niceMade($errored,$urlPart,$resourceKind="",$resourceName="",$pref=3,$correctReturn=201){
 		if($errored!=RP_ERROR_NONE){
 			if($errored=RP_ERROR_DUPLICATE){
 				$this->output->set_header(409);
@@ -295,10 +296,12 @@ class API_Parent extends User_Parent{
 				"kind" => $resourceKind,
 				"pref" => $pref
 			];
-			$this->output->set_header("Location: ".$body["link"])
-			->set_status_header(201)
-			->set_output(json_encode($body))
-			->_display();
+			if($correctReturn==201){
+				$this->output->set_header("Location: ".$body["link"]);
+			}
+			$this->output->set_status_header($correctReturn);
+			unset($body["link"]);
+			$this->outputPlusFilter($body)->_display();
 			die();
 		}
 	}

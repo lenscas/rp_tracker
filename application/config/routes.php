@@ -100,13 +100,14 @@ $route['translate_uri_dashes'] = FALSE;
 		$route["api/rp/(:any)/characters/(:any)"]["PATCH"]  = "api/Char/patchCharacter/$1/$2";
 	//ability list
 		$route['api/abilities/(:any)']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$1";
+		$route['api/rp/(:any)/characters/(:any)/abilities/']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$2";
 	//rp
-		$route["api/rp"]["POST"]            =  "api/Rp/create";
-		$route['api/rp']["GET"]             =  "api/Rp/listAllRPs";
-		$route['api/rp/(:any)']["GET"]      =  "api/Rp/getRP/$1";
-		$route['api/join/(:any)']["GET"]    =  "api/Rp/join/$1";
-		$route["api/config/(:any)"]["GET"]  =  "api/Rp/getRPConfig/$1";
-		$route["api/statsheet"]["GET"]      =  "api/Rp/getAllStatSheets";
+		$route["api/rp"]["POST"]              =  "api/Rp/create";
+		$route['api/rp']["GET"]               =  "api/Rp/listAllRPs";
+		$route['api/rp/(:any)']["GET"]        =  "api/Rp/getRP/$1";
+		$route['api/rp/(:any)/join']["GET"]   =  "api/Rp/join/$1";
+		$route["api/rp/(:any)/config"]["GET"] =  "api/Rp/getRPConfig/$1";
+		$route["api/statsheet"]["GET"]        =  "api/Rp/getAllStatSheets";
 		//$route['api/rp/join/(:any)']        =  "api/Rp/join/$1";
 		//$route['api/rp/getAllStatSheets']   =  "api/Rp/getAllStatSheets";
 		//$route['api/rp/getCharacter/(:any)']  =  "api/Char/getCharacter/$1";
@@ -116,7 +117,7 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['api/modifiers/(:any)']["POST"]    =  "api/Modifiers/insertModifier/$1";
 		$route['api/modifiers/(:any)']["DELETE"]  =  "api/Modifiers/deleteModifier/$1";
 	//battle
-		$route['api/battle/(:any)']["POST"]               =  "api/Battle/createBattle";
-		$route['api/battle/(:any)']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";
-		$route['api/battle/(:any)/(:any)']["GET"]  =  "api/Battle/getBattle/$1/$2";
+		$route['api/rp/(:any)/battles']["POST"]        =  "api/Battle/createBattle/$1";
+		$route['api/rp/(:any)/battles']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";
+		$route['api/rp/(:any)/battles/(:any)']["GET"]  =  "api/Battle/getBattle/$1/$2";
 	

@@ -18,24 +18,12 @@ class Character_model extends MY_model{
 		//first check if the code was valid
 		$rp=$this->Rp_model->getRPByCode($rpCode);
 		if(!$rp){
-			return array("success"=>false,"error"=>"code is not a valid rp");
+			return array("success"=>RP_ERROR_GENERIC,"error"=>"code is not a valid rp");
 		}
 		//Now, check if the player joined the rp
 		$player=$this->Rp_model->checkInRp($userId,$rp->id);
 		if(!$player){
-			return array("success"=>false,"error"=>"User did not join the rp.");
-		}
-		//check if the player is a gm, if he is then we are going to skip the check to see if he has indeed the max amount of start stats
-		if( (! $player->is_GM)){
-			//Lets count them all up 
-			$amount=0;
-			foreach($data['stats'] as $key=>$value){
-				$amount=$amount+$value;
-			}
-			//$amount=$data['health']+$data['armour']+$data['strength']+$data['accuracy']+$data['magicalDefence']+$data['magicalSkill']+$data['agility'];
-			if($amount!=$rp->startingStatAmount){
-				return array("success"=>false,"error"=>"User did not set a correct amount of stats.");
-			}
+			return array("success"=>RP_ERROR_GENERIC,"error"=>"User did not join the rp.");
 		}
 		//only GM's are allowed to make hidden characters
 		$tags=[];
@@ -44,10 +32,10 @@ class Character_model extends MY_model{
 		}
 		unset($data['isHidden']);
 		//copy over the stats as they need to be inserted seperatly and then unset them to prevent problems
-		$stats=$data['stats'];
+		$stats=isset($data['stats']) ? $data['stats'] : array();
 		unset($data['stats']);
 		//get all the abilities in a seperate array as they are needed later
-		$abilities=$data['abilities'];
+		$abilities=isset($data['abilities']) ? $data['abilities'] : array();
 		//if the user submitted an url as picture we need to set that up correct as well
 		$hasGivenURL=false;
 		if(!empty($data["appearancePictureUrl"]) && $data["appearancePictureUrl"]!=""){
@@ -60,28 +48,23 @@ class Character_model extends MY_model{
 		unset($data['abilities']);
 		$data['playerId']=$player->id;
 		$data['code']=parent::createCode("characters");
-		
-		//load in the BB helper
-		$this->load->helper("BB_helper");
-		$data['notes']==parse_bbcode($data['notes']);
-		$data['appearanceDescription']=parse_bbcode($data['appearanceDescription']);
-		$data['backstory']=parse_bbcode($data['backstory']);
-		$data['personality']=parse_bbcode($data['personality']);
 		$this->db->insert("characters",$data);
 		$data['charId']=$this->db->insert_id();
 		//now, lets insert the abilities, first do the last bit of preperation to the ability array
-		
-		foreach ($abilities as $key=>$value){
-			$abilities[$key]['charId']=$data['charId'];
-			$abilities[$key]['name']=parse_bbcode($abilities[$key]['name']);
+		if($abilities){
+			foreach ($abilities as $key=>$value){
+				$abilities[$key]['charId']=$data['charId'];
+				$abilities[$key]['name']=$abilities[$key]['name'];
+			}
+			$this->db->insert_batch("abilities",$abilities);
 		}
-		$this->db->insert_batch("abilities",$abilities);
+		
 		//now its time to insert the stats. First we load in the modifiers model
 		$this->load->model("Modifiers_model");
 		$this->Modifiers_model->insert_batch($data['charId'],$stats,true);
 		$this->load->model("Tag_model");
 		$this->Tag_model->linkCharWIthTagByRoleBatch($data["charId"],$tags);
-		return array("success"=>true,"data"=>$data,"hasGivenURL"=>$hasGivenURL);
+		return array("success"=>RP_ERROR_NONE,"code"=>$data["code"]);
 	}
 	public function setPicture($charId,$fileName,$needChecks=true){
 		if($needChecks){
@@ -275,24 +258,10 @@ class Character_model extends MY_model{
 		$this->db->limit(1)->update("characters",$data);
 	}
 	public function updateAbilities($charId,$data,$isGM=true,$useCode=false){
-		if(!$isGM){
-			$this->load->model("Rp_model");
-			$rpCode = $this->getRPCodeByChar($charId,$useCode);
-			if(!$rpCode){
-				return ["success"=>false,"error"=>"character does not exist"];
-			}
-			$config = $this->Rp_model->getRPConfigByCode($rpCode);
-			if(!$config["success"]){
-				return $config;
-			}
-			if(count($data)>$config["success"]->startingAbilityAmount){
-				return ["success"=>false,"error"=>"Too many abilities to edit"];
-			}
-		}
 		if($useCode){
 			$res = $this->db->select("id")->from("characters")->limit(1)->where("code",$charId)->get()->row();
 			if(!$res){
-				return ["success"=>false,"error"=>"character does not exist"];
+				return RP_ERROR_NOT_FOUND;
 			}
 			$charId = $res->id;
 		}
@@ -311,7 +280,7 @@ class Character_model extends MY_model{
 			}
 			$this->db->update("abilities");
 		}
-		return ["success"=>true];
+		return RP_ERROR_NONE;
 		
 	}
 	

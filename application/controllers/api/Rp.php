@@ -9,21 +9,18 @@ class Rp extends API_Parent {
 	public function create(){
 		$data=array("success"=>false);
 		$this->load->library('form_validation');
-		$this->form_validation->set_rules("name","name","required");
-		$this->form_validation->set_rules("startingStatAmount","startingStatAmount","required|integer");
-		$this->form_validation->set_rules("startingAbilityAmount","startingAbilityAmount","required|integer");
-		$this->form_validation->set_rules("description","descripton","required");
-		$this->form_validation->set_rules("statSheetCode","statSheetCode","required");
-		if($this->form_validation->run() ){
-			$data=$this->Rp_model->create($this->userId,parent::getPostSafe());
-		} else {
-			$data["error"]="Some fields are not set correctly.";
-		}
-		$code=200;
-		if(!$data["success"]){
-			$code=422;
-		}
-		parent::niceReturn($data,$code,false);
+				$data=array("success"=>false);
+		$this->load->library('form_validation');
+		$checkOn = [
+			["name","name","required"],
+			["startingStatAmount","startingStatAmount","required|integer"],
+			["startingAbilityAmount","startingAbilityAmount","required|integer"],
+			["description","descripton","required"],
+			["statSheetCode","statSheetCode","required"]
+		];
+		$data = parent::checkAndErr($checkOn);
+		$rpData = $this->Rp_model->create($this->userId,$data);
+		parent::niceMade(0,"rp/".$rpData["code"],"Roleplay",$data["name"]);
 	}
 	public function listAllRPs(){
 		$data=$this->Rp_model->getAllRPs();
@@ -34,18 +31,18 @@ class Rp extends API_Parent {
 		$rp=$this->Rp_model->getWholeRp($rpCode,$isGM);
 		unset($rp->id);
 		parent::niceReturn($rp);
-		echo json_encode($rp);
 	}
 	public function join($rpCode){
 		$rp=$this->Rp_model->getRPByCode($rpCode);
 		if($rp){
 			if($this->Rp_model->joinRp($this->userId,$rp->id)){
-				echo json_encode(array("success"=>true));
+				//echo json_encode(array("success"=>true));
 			} else {
-				echo json_encode(array("success"=>false,"error"=>"Already Joined"));
+				//echo json_encode(array("success"=>false,"error"=>"Already Joined"));
 			}
 		} else {
-			echo json_encode(array("success"=>false,"error"=>"Code is not a valid rp"));
+			parent::niceReturn();
+			//echo json_encode(array("success"=>false,"error"=>"Code is not a valid rp"));
 		}
 		
 	}

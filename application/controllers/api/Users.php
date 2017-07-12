@@ -7,19 +7,29 @@ class Users extends API_Parent {
 	public function login(){
 		parent::redirectLoggedIn();
 		$error;
-		$this->load->library('form_validation');
+		$checkOn = [
+			["username","username","required"],
+			["password","password","required"]
+		];
+		$data = parent::checkAndErr($checkOn,false,false);
+		/*
 		$this->form_validation->set_rules("username","username","required");
 		$this->form_validation->set_rules("password","password","required");
+		
 		if($this->form_validation->run()){
-			$error=$this->Users_model->login(parent::getPostSafe());
-		} else {
-			$error="One or more fields are not filled in.";
-		}
+		*/	
+		$error=$this->Users_model->login($data);
 		$code=200;
+		$returnData = [
+			"loggedIn"=>!$error,
+			"error"=>$error
+		];
 		if($error){
 			$code=422;
+		} else {
+			$returnData["userId"] = $this->session->userId;
 		}
-		parent::niceReturn(["loggedIn"=>!$error,"error"=>$error],$code,false);
+		parent::niceReturn($returnData,$code,false);
 	}
 	public function register(){
 		//make sure the user is not logged in
@@ -41,7 +51,7 @@ class Users extends API_Parent {
 			//there was at least 1 error. Time to throw it to the user
 			parent::niceMade($status[0]["error"],"",$status["on"],$status["value"]);
 		} else {
-			parent::niceMade(0,"","user","account");
+			parent::niceMade(RP_ERROR_NONE,"","user","account");
 		}
 		//parent::niceReturn(["success"=>!$error,"error"=>$error],$code,false);
 	}
@@ -58,6 +68,10 @@ class Users extends API_Parent {
 		} else {
 			parent::forceLogin();
 		}
+		$userData = $this->Users_model->getUserData($userId);
+		if(!$userData){
+			parent::niceReturn([],404,false);
+		}
 		//lets slowly get all the data that we need
 		//we first need to grab another model
 		$this->load->model("Rp_model");
@@ -68,9 +82,9 @@ class Users extends API_Parent {
 		$joinedRPs = $this->Rp_model->getAllJoinedRp($userId);
 		$joinedRPs = $this->createLinksForRPs($joinedRPs);
 		//other data that may or may not be important
-		$userData = $this->Users_model->getUserData($userId);
+		
 		//now, lets put it in a nice array and send it to the user
-		echo parent::niceReturn(["joinedRPs"=>$joinedRPs,"madeRPs"=>$madeRPs,"userData"=>$userData],200,false);
+		parent::niceReturn(["joinedRPs"=>$joinedRPs,"madeRPs"=>$madeRPs,"userData"=>$userData],200,false);
 	}
 
 }

@@ -4,12 +4,28 @@ class Battle_model extends MY_model{
 	public function __construct(){
 		parent::__construct();
 	}
-	public function createBattle($data){
+	public function createBattle($rpId,$data){
+		$data["rpId"]=$rpId;
 		$this->db->insert("battle",$data);
 		return $this->db->insert_id();
 	}
-	public function insertCharsInBattle($data){
-		$this->db->insert_batch("charsInBattle",$data);
+	public function insertCharsInBattle($battleId,$rpId,$data,$useRPCode=false){
+		$insertData=array();
+		$this->load->model("Character_model");
+		$turnOrder=0;
+		foreach($data as $key => $value){
+			$characterId = $this->Character_model->getCharacter($value,true,true,$rpId)->id ?? null;
+			if(empty($characterId)){
+				continue;
+			}
+			$insertData[$key] = [
+				"battleId" => $battleId,
+				"charId"   => $characterId,
+				"turnOrder"=> $turnOrder++,
+				"isTurn"   => $turnOrder==1
+			];
+		}
+		$this->db->insert_batch("charsInBattle",$insertData);
 	}
 	//$rpId this automatically puts the rpId in the new array. Usefull when preparing to insert it, not so usefull otherwise.
 	//$makeIsTurnValue this automatically makes a value that shows who's turn it is. Usefull when inserting, maybe not so much otherwise
