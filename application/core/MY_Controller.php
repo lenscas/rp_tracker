@@ -76,7 +76,7 @@ class User_Parent extends CI_Controller {
 			//if the call is done using ajax we want to be nice and tell the client that he isn't autorazied
 			//if the call is done normally from the browser we just want to redirect
 			if($this->input->is_ajax_request()){
-				$this->output->set_status_header(403,$extraText)->_display();
+				$this->output->set_status_header(403)->_display();
 			} else {
 				redirect("login");
 			}

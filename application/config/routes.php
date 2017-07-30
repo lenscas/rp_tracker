@@ -81,6 +81,7 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['rp/battle/manage/(:any)']	=	"browser/Battle/manageBattle/$1";
 //api
 	//user
+		$route['api/logout']                      =  "browser/Users/logout";
 		$route["api/login"]["POST"]           =  "api/Users/login";
 		$route['api/users/(:any)']["GET"]     =  "api/Users/profile/$1";
 		$route["api/users"]["POST"]           =  "api/Users/register";
@@ -99,6 +100,7 @@ $route['translate_uri_dashes'] = FALSE;
 		//this one has no old equivalant and will not get one.
 		$route["api/rp/(:any)/characters/(:any)"]["PATCH"]  = "api/Char/patchCharacter/$1/$2";
 	//ability list
+		$route["api/rp/(:any)/abilities"]["GET"] = "api/Char/getAbilitiesByCharInRP/$1";
 		$route['api/abilities/(:any)']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$1";
 		$route['api/rp/(:any)/characters/(:any)/abilities/']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$2";
 	//rp
