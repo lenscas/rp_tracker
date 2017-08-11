@@ -115,6 +115,10 @@ $route['translate_uri_dashes'] = FALSE;
 		//$route['api/rp/getCharacter/(:any)']  =  "api/Char/getCharacter/$1";
 		//$route['api/rp/getConfig/(:any)']     =  "api/Rp/getRPConfig/$1";
 	//modifiers
+		$route["api/rp/(:any)/characters/(:any)/modifiers/(:any)"]["PUT"] = "api/Modifiers/updateModifier/$3";
+		$route["api/rp/(:any)/characters/(:any)/modifiers"]["POST"] = "api/Modifiers/insertModifier/$2";
+		$route["api/rp/(:any)/characters/(:any)/modifiers/(:any)"]["DELETE"] = "api/Modifiers/deleteModifier/$3";
+		//old routes.
 		$route['api/modifiers/(:any)']["PUT"]     =  "api/Modifiers/updateModifier/$1";
 		$route['api/modifiers/(:any)']["POST"]    =  "api/Modifiers/insertModifier/$1";
 		$route['api/modifiers/(:any)']["DELETE"]  =  "api/Modifiers/deleteModifier/$1";

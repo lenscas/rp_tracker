@@ -6,7 +6,6 @@ class Modifiers extends RP_Parent {
 		$this->load->model("Modifiers_model");
 	}
 	public function updateModifier($modId){
-		
 		if($this->checkIfValidMod(true)){
 			$this->load->model("Rp_model");
 			$rpId	=	$this->Modifiers_model->getRPfromMod($modId);
@@ -16,9 +15,7 @@ class Modifiers extends RP_Parent {
 			}else {
 				echo json_encode(array("success"=>false,"error"=>"You don't have permission to edit this."));
 			}
-			
 		} else {
-			var_dump(parent::getPostSafe());
 			echo json_encode(array("success"=>false,"error"=>"One or more fields are not set correctly."));
 		}
 	}
@@ -27,9 +24,10 @@ class Modifiers extends RP_Parent {
 			$this->load->model("Character_model");
 			$rpId	=	$this->Character_model->getRPIdByChar($charCode);
 			$this->load->model("Rp_model");
-			if($this->Rp_model->checkIfGM($this->userId,$rpId)){
-				$character=$this->Character_model->getCharacter($charCode,true);
-				$modId=$this->Modifiers_model->insertModifier(parent::getPostSafe(),$character['id']);
+			if($this->Rp_model->checkIfGM($this->userId,$rpId->id)){
+				$character=$this->Character_model->getCharacter($charCode,true,true);
+				$modId=$this->Modifiers_model->insertModifier(parent::getPostSafe(),$character->id);
+				
 				echo json_encode(array("success"=>true,"id"=>$modId));
 			} else {
 				echo json_encode(array("success"=>false,"error"=>"You don't have permission to create this.'"));
