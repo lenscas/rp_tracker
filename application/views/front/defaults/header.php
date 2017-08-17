@@ -35,19 +35,27 @@
     
 	<!-- Datatable -->
     <script src="<?php echo base_url("third_party/DataTables-1.10.9/media/js/jquery.dataTables.min.js")?>" type="text/javascript"></script>
-     <link rel="stylesheet" href="<?php echo base_url("third_party/DataTables-1.10.9/media/css/jquery.dataTables.min.css")?>">
+    <link rel="stylesheet" href="<?php echo base_url("third_party/DataTables-1.10.9/media/css/jquery.dataTables.min.css")?>">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
-	<!-- default text editor config -->
+	<!-- some default configuration here-->
 	<script>
+	//editor config
 	EDITOR_DEFAULT_CONFIG = {
 		buttons: "bold,italic,underline,|,img,link,"
 	}
+	//pointer to the site for use by JS
+	GLOBAL_BASE_URL = "<?php echo base_url() ?>"
 	</script>
+	<!-- custom js here -->
+	<!-- This is to reduce the code needed to make ajax calls to the server -->
+	<script src="<?php echo base_url("js/easyAPI.js")?>"></script>
+	<!-- This is used to make it easier to show alerts and thus give feedback to the user -->
+	<script src="<?php echo base_url("js/alertManager.js")?>"></script>
 </head>
 <body style="padding-top:0px; height:100%; overflow:hidden; position:relative;" >
 	<nav class=" navbar navbar-default" style="margin-bottom:0px; height:50px; width:100%; position:absolute;">

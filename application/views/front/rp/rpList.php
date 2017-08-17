@@ -22,16 +22,14 @@
 		</div>
 	</div>
 </div>
-<div class="col-md-8" id="rpContainer">
+<div class="col-md-12" id="rpContainer" style="height:100%; overflow:auto"><!-- -->
 	
 </div>
 <script>
 var ALL_RPS={}
 function renderRPs(){
 	var template=$("#template")
-	console.log(template)
 	$("#rpContainer").empty()
-	console.log(ALL_RPS)
 	$.each(ALL_RPS,function(key,value){
 		console.log($(template).find(".creatorName"))
 		$(template).find(".creatorAvatar").attr("src",value.avatar+"&s=200")
@@ -42,16 +40,19 @@ function renderRPs(){
 		$(template).find(".rpTemplate").clone().appendTo($("#rpContainer"))
 	})
 }
-$.ajax({
-	url		:	"<?php echo base_url("index.php/api/rp") ?>",
-	method	:	"GET",
-	dataType:	"json",
-	success	:	function(data){
-		ALL_RPS=data
-		renderRPs()
-	}
-})
-$("#rpContainer").on("click",".rpTemplate",function(){
-	window.location="<?php echo base_url("index.php/rp/details")?>/"+$(this).find(".code").val()
+$( document ).ready(function(){
+	doCall({
+		url        : "rp",
+		method     : "GET",
+		statusCode : {
+			200 : function(data){
+				ALL_RPS=data,
+				renderRPs();
+			}
+		}
+	})
+	$("#rpContainer").on("click",".rpTemplate",function(){
+		window.location="<?php echo base_url("index.php/rp/details")?>/"+$(this).find(".code").val()
+	})
 })
 </script>

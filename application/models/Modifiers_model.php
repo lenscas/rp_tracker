@@ -52,6 +52,9 @@ class Modifiers_model extends MY_model {
 	}
 
 	public function insert_batch($charId,$data,$isBase=false){
+		if(! $data){
+			return;
+		}
 		if($isBase){
 			$insertData=array();
 			foreach($data as $key=>$value){
@@ -60,6 +63,7 @@ class Modifiers_model extends MY_model {
 			}
 			$data=$insertData;
 		}
+		
 		$this->db->insert_batch("modifiers",$data);
 	}
 	public function getStatsFromChar($charId){
@@ -135,7 +139,7 @@ class Modifiers_model extends MY_model {
 			return $query->row_array();
 		}
 	}
-	public function updateBaseStats($stats,$isGM=false){
+	public function updateBaseStats($stats){
 		$statsCount = count($stats); //we need this multiple times
 		//first we are going to get the stats that will be updated.
 		//This allows us both to check if all the stats are indeed base mods and if the user is not an GM if the amount of stats allocated stay the same
@@ -143,27 +147,12 @@ class Modifiers_model extends MY_model {
 		->from("modifiers")
 		->limit($statsCount) //at a max we only get the count() of $stats returned. Better to not waste time searching for more
 		->where("isBase",1);//only base stats are allowed to be edited this way!
-		$totalUpdatedStats=0;//we need this to check if the user is not going over his limit
 		foreach($stats as $key=>$value){
 			$this->db->or_where("id",$key);//the key is the id of the modifier
-			$totalUpdatedStats=$totalUpdatedStats+$value;
 		}
 		$res = $this->db->get()->result();
 		if(!$res){
-			return ["error"=>"no stats found","success"=>false];
-		}
-		if(count($res)!=$statsCount){ //if they are not equal then either the user wants to update non-base stats or update stats that don't exist
-			return ["error"=>"Can't update non base stats","success"=>false];
-		}
-		if(!$isGM){
-			//now with that out of the way, lets see if they total of both are still equal
-			$totalStats=0;
-			foreach($res as $key=>$value){
-				$totalStats=$totalStats+$value->value;
-			}
-			if($totalStats!=$totalUpdatedStats){
-				return ["error"=>"Not the total correct amount of points are given to the character","success"=>false];
-			}
+			return RP_ERROR_NOT_FOUND;
 		}
 		//now, its time to finally update the character's stats
 		foreach($stats as $key=>$value){
@@ -172,7 +161,7 @@ class Modifiers_model extends MY_model {
 			->set("value",$value)
 			->update("modifiers");
 		}
-		return ["success"=>true];
+		return RP_ERROR_NONE;
 	}
 	
 }

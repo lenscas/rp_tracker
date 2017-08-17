@@ -1,46 +1,31 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Battle extends RP_Parent {
+class Battle extends API_Parent {
 	public function __construct(){
 		parent::__construct();
 		$this->load->model("Battle_model");
 		$this->load->model("Rp_model");
 	}
 	
-	public function createBattle(){
-		$this->load->library("form_validation");
-		$this->form_validation->set_rules("name","name","required");
-		$this->form_validation->set_rules("characters[]","characters","required");
-		$this->form_validation->set_rules("rpCode","rpCode","required");
-		if($this->form_validation->run()){
-			//get all the data
-			$data	=	parent::getPostSafe();
-			//load the RP model so we can change the rpCode into the rpId
-			$rp=$this->Rp_model->getRPByCode($data['rpCode']);
-			if($this->Rp_model->checkIfGM($this->userId,$rp->id)){
-				//prepare the post data to create the battle
-				$characters=$data['characters'];
-				unset($data['characters']);
-				unset($data['rpCode']);
-				$data['rpId']=$rp->id;
-				//create the battle
-				$battleId=$this->Battle_model->createBattle($data);
-				echo $battleId;
-				//now we want to get all the agility stats from all characters in the list. 
-				$this->load->model("Modifiers_model");
-				$charListWithAgil=$this->Modifiers_model->getTotalStat($characters,"evade_defense",true,true);
-				//we then turn the agillity stat into an order.
-				$charListWithOrder=$this->Battle_model->decideOrder($charListWithAgil,true,$battleId);
-				$this->Battle_model->insertCharsInBattle($charListWithOrder,true);
-				
-			} else {
-				echo json_encode(array("success"=>false,"error"=>"You have no permission to make a battle"));
-			}
-		} else {
-			echo json_encode(array("success"=>false,"error"=>"one or more fields where not set correctly"));
-			echo validation_errors();
+	public function createBattle($rpCode){
+		$rules = [
+			["name","name","required"],
+			["characters[]","characters","required"],
+		];
+		$data = parent::checkAndErr($rules);
+		$rp=$this->Rp_model->getRPByCode($rpCode);
+		$error = RP_ERROR_NO_PERMISSION;
+		if($this->Rp_model->checkIfGM($this->userId,$rp->id)){
+			//prepare the post data to create the battle
+			$characters=$data['characters'];
+			unset($data['characters']);
+			//create the battle
+			$battleId=$this->Battle_model->createBattle($rp->id,$data);
+			$this->Battle_model->insertCharsInBattle($battleId,$rpCode,$characters);
+			$error = RP_ERROR_NONE;
 		}
+		parent::niceMade($error,"rp/".$rpCode."/battles".$battleId,"Battle",$data["name"]);
 	}
 	public function getAllBattlesByRp($rpCode){
 		$battles	=	$this->Battle_model->getAllBattles($rpCode,true);
@@ -64,13 +49,13 @@ class Battle extends RP_Parent {
 				}
 			}
 		}
-		echo json_encode(["battles"=>$battles,"tags"=>$tags]);
+		parent::niceReturn(["battles"=>$battles,"tags"=>$tags]);
 	}
 	public function getBattle($rpCode,$battleId){
 		
 		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpCode);
 		$battleData= $this->Battle_model->getBattle($rpCode,$battleId,$isGM);
-		echo json_encode($battleData);
+		parent::niceReturn($battleData);
 	}
 
 }

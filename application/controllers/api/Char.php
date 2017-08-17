@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Char extends RP_Parent {
+class Char extends API_Parent {
 	public function __construct(){
 		parent::__construct();
 		$this->load->model("Character_model");
@@ -42,72 +42,66 @@ class Char extends RP_Parent {
 		echo json_encode($data);
 	}
 	public function createCharacter($rpCode){
-		$this->load->library('form_validation');
-		$this->form_validation->set_rules("name","name","required");
-		$this->form_validation->set_rules("age","age","required|integer");
-		$this->form_validation->set_rules("backstory","backstory","required");
-		$this->form_validation->set_rules("personality","personality","required");
-		if($this->form_validation->run()){
-			//$this->load->model("Character_model");
-			$data=$this->Character_model->creatCharacter($this->userId,$rpCode,parent::getPostSafe());
-			if($data['success']){
-				if(!$data["hasGivenURL"]){
-					$showForm=false;
-					$config['upload_path']	= './assets/uploads/characters';
-					$config['allowed_types']= 'gif|jpg|png';
-					$config['max_size']		= '2048';
-					$config['max_width']	= '0';
-					$config['max_height']	= '0';
-					$config['remove_spaces']=true;
-					$this->load->library('upload', $config);
-					if ($this->upload->do_upload("appearancePicture")){
-						$uploadData=$this->upload->data();
-						$this->Character_model->setPicture($data['data']['charId'],$uploadData['file_name'],false);
-					}
-				}
-				echo json_encode(["success"=>true,"error"=>false,"charCode"=>$data["data"]["code"]]);
-				//redirect("rp/character/view/".$data['data']['code']);
-			}
-			
-		} else {
-			echo json_encode(["success"=>false,"error"=>"some or more fields where not filled in","data"=>parent::getPostSafe()]);
-		}
+		$checkOn = [
+			["name","name","required"],
+			["age","age","required|integer"],
+			["backstory","backstory","required"],
+			["personality","personality","required"]
+		];
+		$postData=parent::checkAndErr($checkOn);
+		//$this->load->model("Character_model");
+		$data=$this->Character_model->creatCharacter($this->userId,$rpCode,$postData);
+		parent::niceMade($data["success"],"rp/".$rpCode."/characters/".$data["code"],"character",$postData["name"]);
 	}
+	//not needed anymore now that we are going to use php7
 	private function easyArrayAccess($array,$field,$default=null){
 		if(isset($array[$field])){
 			return $array[$field];
 		}
+		echo "remove call to easyArrayAccess!";
 		return $default;
 	}
 	public function patchCharacter($rpCode,$charCode){
 		$data = $this->getPutSafe();
-		$isGM = false;
+		$isGM = false; //this gets changed by checkIfUserMayEdit() to reflect if the user is an GM or not
+		$error = RP_ERROR_NONE;
+		$name = $charCode;
+		$resourceKind = "character";
+		$urlPart = "rp/" . $rpCode . "/characters/";
 		try {
-			$mayEdit = $this->Character_model->checkIfUserMayEdit($rpCode,$charCode,$this->userId,$isGM);
+			if(!$this->Character_model->checkIfUserMayEdit($rpCode,$charCode,$this->userId,$isGM)){
+				$error = RP_ERROR_NO_PERMISSION;
+			}
+			
 		} catch (Exception $e) {
 			if($e->getMessage()=="Character does not exist"){
-				show_404();
+				$error = RP_ERROR_NOT_FOUND;
 				return;
 			} else {
 				throw $e;
 			}
 			
 		}
-		if(!$mayEdit){
-			echo json_encode(["error"=>"You are not allowed to change this character","success"=>false]);
-			return;
+		if($error!=RP_ERROR_NONE){
+			$name = $charCode;
+			if($error != RP_ERROR_NOT_FOUND){
+				$urlPart = $urlPart . $charCode;
+				$name = $this->Character_model->getCharacter($charCode,true,$isGM,$rpCode);
+			}
+			parent::niceMade($error,$urlPart,"character",$name);
 		}
-		$stats						=	$this->easyArrayAccess($data,"stats");
-		$abilities					=	$this->easyArrayAccess($data,"abilities");
+		$urlPart = $urlPart . $charCode;
+		$stats						=	$data["stats"] ?? null;
+		$abilities					=	$data["abilities"] ?? null;
 		$character					=	[
-			"name"					=>	$this->easyArrayAccess($data,"name",false),
-			"age"					=>	$this->easyArrayAccess($data,"age",false),
-			"appearancePicture"		=>	$this->easyArrayAccess($data,"appearancePicture",false),
-			"appearanceDescription"	=>	$this->easyArrayAccess($data,"appearanceDescription",false),
-			"backstory"				=>	$this->easyArrayAccess($data,"backstory",false),
-			"personality"			=>	$this->easyArrayAccess($data,"personality",false),
-			"notes"					=>	$this->easyArrayAccess($data,"notes",false),
-			"hiddenData"			=>	$this->easyArrayAccess($data,"hiddenData",false)
+			"name"					=>	$data["name"] ?? false,
+			"age"					=>	$data["age"] ?? false,
+			"appearancePicture"		=>	$data["appearancePicture"] ?? false,
+			"appearanceDescription"	=>	$data["appearanceDescription"] ?? false,
+			"backstory"				=>	$data["backstory"] ?? false ,
+			"personality"			=>	$data["personality"] ?? false,
+			"notes"					=>	$data["notes"] ?? false,
+			"hiddenData"			=>	$data["hiddenData"] ?? false
 		];
 		foreach($character as $key=>$value){
 			if($value===false){
@@ -119,19 +113,11 @@ class Char extends RP_Parent {
 		}
 		if($stats){
 			$this->load->model("Modifiers_model");
-			$res = $this->Modifiers_model->updateBaseStats($stats, $isGM);
-			if(!$res["success"]){
-				echo json_encode($res);
-				return;
-			}
+			$error = $this->Modifiers_model->updateBaseStats($stats);
 		}
-		if($abilities){
-			$res = $this->Character_model->updateAbilities($charCode,$abilities,$isGM,true);
-			if(!$res["success"]){
-				echo json_encode($res);
-				return;
-			}
+		if($abilities && $error == RP_ERROR_NONE){
+			$error = $this->Character_model->updateAbilities($charCode,$abilities,$isGM,true);
 		}
-		echo json_encode(["success"=>true]);
+		parent::niceMade(RP_ERROR_NONE,$urlPart,"character",$name,3,200);
 	}
 }

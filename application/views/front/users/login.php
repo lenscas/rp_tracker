@@ -1,4 +1,4 @@
-		<div class="col-md-8">
+		
 			<div class="hold-transition login-page" style="background:none;">
 				<div class="row">
 					<div class="login-logo" style="padding-top:50px">
@@ -6,7 +6,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="login-box"   '><!-- height:768px; max-width:1024px;width:100%; -->
+			<div class="login-box"><!-- height:768px; max-width:1024px;width:100%; -->
 				<div class="login-box-body" style="background:none;">
 					<p class="login-box-msg">Log in</p>
 					<form method="post">
@@ -28,7 +28,6 @@
 					</form>
 				</div><!-- /.login-box-body -->
 			</div><!-- /.login-box -->
-		</div>
 
 	<!-- jQuery 2.1.4 -->
 	<script src="<?php echo base_url("third_party/jquery-1.11.3.min.js") ?>"></script>
@@ -48,22 +47,22 @@
 				var password	=	$("#password").val()
 				var username	=	$("#username").val()
 				if( password && username){
-					$.ajax({
-						url		:	"<?php echo base_url("index.php/api/login") ?>",
-						method	:	"POST",
-						data	:	{password : password, username : username},
-						dataType:	"json",
-						success	:	function(data){
-							console.log(data)
-							if(!data.loggedIn){
-								$("#error").empty().html("<p>"+data.error+"</p>").show();
-							} else {
-								window.location = "<?php echo base_url("index.php/profile") ?>"
-							}
+					doCall({
+						url     : "login",
+						data    : {password : password, username : username},
+						method  : "POST",
+						statusCode: {
+							200 : function(data){
+								console.log(data)
+								if(!data.loggedIn){
+									$("#error").empty().html("<p>"+data.error+"</p>").show();
+								} else {
+									window.location = "<?php echo base_url("index.php/profile") ?>"
+								}
+							},
 						}
-						
 					})
 				}
 			})
 		});
-    </script>
+	</script>

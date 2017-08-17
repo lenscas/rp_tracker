@@ -4,15 +4,13 @@ class Rp_model extends MY_Model {
 		parent::__construct();
 	}
 	public function create($userId,$postData){
-		$this->load->helper("BB_helper");
 		$postData['code']=parent::createCode("rolePlays");
-		if($postData['isPrivate']=="true"){
+		if(isset($postData['isPrivate']) && $postData['isPrivate']=="true"){
 			$postData['isPrivate']=1;
 		} else {
 			$postData['isPrivate']=0;
 		}
 		$postData['creator']=$userId;
-		$postData['description']=parse_bbcode($postData['description']);
 		//get the id of the sheet used using the given code.
 		$postData['statSheetId']=$this->db->select("id")->from("statSheets")->where("code",$postData['statSheetCode'])->get()->row()->id;
 		if($postData['statSheetId']){
