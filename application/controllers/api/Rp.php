@@ -48,7 +48,8 @@ class Rp extends API_Parent {
 	}
 	
 	public function getRPConfig($rpCode){
-		echo json_encode($this->Rp_model->getRPConfigByCode($rpCode,$this->userId));
+		$data = $this->Rp_model->getRPConfigByCode($rpCode,$this->userId);
+		parent::niceReturn($data);
 	}
 	public function getAllStatSheets(){
 		echo json_encode($this->Rp_model->getAllStatSheets());

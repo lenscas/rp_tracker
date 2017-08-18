@@ -1,12 +1,4 @@
 <?php
-class RP_Parent extends User_Parent {
-	
-	public function __construct() {
-		parent::__construct();
-		$this->userId=parent::getIdForced();
-	}
-}
-
 class User_Parent extends CI_Controller {
 	//used to make sure the construct of the parent always gets executed
 	public $sessionData;
@@ -93,65 +85,6 @@ class User_Parent extends CI_Controller {
 			redirect("profile");
 		}
 	}
-	//only loads the header
-	public function loadHeader($dataOverWrite=false){
-		//$this->load->model("defaults_model.php");
-		$headerData=array();
-		if($dataOverWrite){
-			$headerData=$dataOverWrite;
-			
-		} else {
-			if($this->session->has_userdata("userId")){
-				$headerData['loggedIn']=true;
-			}else{
-				$headerData['loggedIn']=false;
-			}
-		}
-		$this->load->view("front/defaults/header.php",$headerData);
-	}
-	
-	public function loadAll($view,$rpData,$data=array(),$overWriteHeader=false){
-		$this->loadHeader($overWriteHeader);
-		$this->load->view("front/defaults/firstSideBar");
-		//we need to check if the user has joined this rp. Because depending on that we either show a create character button or join rp button
-		//first, check if the rp model has already been loaded
-		if(! isset($this->Rp_model)){
-			$this->load->model("Rp_model");
-		}
-		$rpHeaderData=array();
-		//echo gettype($dat)
-		if(gettype($rpData)!="array"){
-			$rpHeaderData=array(
-				"rpCode"	=>	$rpData,
-				"hasJoined"	=>	$this->Rp_model->checkIfJoined($this->userId,false,$rpData),
-				"isGM"		=>	$this->Rp_model->checkIfGM($this->userId,$rpData)
-			);
-		} else {
-			echo "test";
-		}
-		$this->load->view("front/defaults/rp_header",$rpHeaderData);
-		$this->load->view("front/defaults/alert",["hasRPHeader"=>true]);
-		$this->load->view("front/".$view,$data);
-		$this->load->view("front/defaults/rp_header_end");
-		$this->load->view("front/defaults/secondSideBar");
-		$this->load->view("front/defaults/footer.php");
-	}
-	//loads the header, the sidebars, the specified view and the footer
-	public function loadWithExtra($view,$data=array(),$overWriteHeader=false){
-		$this->loadHeader($overWriteHeader);
-		$this->load->view("front/defaults/firstSideBar");
-		$this->load->view("front/defaults/alert",["hasRPHeader"=>false]);
-		$this->load->view("front/".$view,$data);
-		$this->load->view("front/defaults/secondSideBar");
-		$this->load->view("front/defaults/footer.php");
-	}
-	//used to load the default header+a normal view+footer
-	public function loadbasics($view,$data=array()){
-		$this->loadHeader(false);
-		$this->load->view("front/".$view,$data);
-		$this->load->view("front/defaults/footer.php");
-		
-	}
 }
 class API_Parent extends User_Parent{
 	public function __construct($checkLogin=true){
@@ -214,6 +147,9 @@ class API_Parent extends User_Parent{
 				],
 				"errors" => $this->form_validation->error_array()
 			];
+			if($this->session->userId){
+				$body["userId"] = $this->session->userId;
+			}
 			$this->outputPlusFilter($body)->_display();
 			//we don't want the program to do other stuff. So....lets die
 			die();
@@ -246,13 +182,30 @@ class API_Parent extends User_Parent{
 		return $data;
 	}
 	public function outputPlusFilter($data){
+		//cast it to an array as sometimes we get an object instead of an array
+		//it doesn't matter anyway for the rest of the functions
+		$data = (array)$data;
+		if(!isset($data["userId"]) && $this->session->userId){
+			$data["userId"] = $this->session->userId;
+		}
 		$data = $this->escapeData($data);
 		$this->output->set_output(json_encode($data));
 		return $this->output;
 	}
 	
 	//this function is used if a resource is made to uniformaly return stuff to the client
-	public function niceMade($errored,$urlPart,$resourceKind="",$resourceName="",$pref=3,$correctReturn=201){
+	public function niceMade($data,$urlPart,$resourceKind="",$resourceName="",$pref=3,$correctReturn=201){
+		if(gettype($data)=="array"){
+			$urlPart = $data["url"];
+			$resourceKind = $data["resourceKind"] ?? "";
+			$resournceName = $data["resourceName"] ?? "";
+			$pref = $data["pref"] ?? 3;
+			$correctReturn = $data["code"] ?? 201;
+			$idInfo = $data["idInfo"] ?? [];
+			$errored = $data["status"] ?? RP_ERROR_NONE;
+		} else {
+			$errored = $data;
+		}
 		if($errored!=RP_ERROR_NONE){
 			if($errored=RP_ERROR_DUPLICATE){
 				$this->output->set_header(409);
@@ -266,22 +219,25 @@ class API_Parent extends User_Parent{
 					"VALUE" => $resourceKind,
 					"pref"  => $pref
 				];
-				$this->outputPlusFilter($body)->_display();
-				die();
 			//expand possible errors here
 			} elseif($errored==RP_ERROR_GENERIC) {
 				//a generic error happened :(
 				$this->output->set_header(500);
-				$this->outputPlusFilter(["message"=>"Something broke, please retry later.", "errorCode"=>$errored])->_display();
-				die();
+				$body = [
+					"message"=>"Something broke, please retry later.", 
+					"errorCode"=>$errored,
+				];
 			} else {
 				//something very weird happened....
 				//a generic error happened :(
 				$this->output->set_header(500);
-				$this->outputPlusFilter(["message"=>"This shouldn't have happened..... :('","errorCode"=>$errored])->_display();
+				$body = [
+					"message"=>"This shouldn't have happened..... :('",
+					"errorCode"=>$errored
+				];
 			}
-			//something went wrong... :(
-			//TODO implement something went wrong code
+			$this->outputPlusFilter($body)->_display();
+			die();
 		} else {
 		$body = [
 				//this contains some nice messages that can be displayed to the user if the client wishes to stay on the same page
@@ -306,10 +262,22 @@ class API_Parent extends User_Parent{
 		}
 	}
 	public function niceReturn($data,$responce=200,$allowOverwrite=true,$extraText=null,$die=true){
+		if(gettype($responce)=="array"){
+			$allowOverwrite =($reponce["allowOverWrite"]?? false)|| $reponce["code"]!=200;
+			$extraText = $responce["text"] ?? null;
+			$die = $responce["die"] ?? true;
+			$responce = $responce["code"];
+		}
 		if(empty($data)){
 			if($allowOverwrite){
 				$responce = 404;
 			}
+		}
+		$data = (array)$data;
+		if(! ($data["data"] ?? false)){
+			$temp = $data;
+			unset($data);
+			$data["data"] = $temp;
 		}
 		$this->output->set_status_header($responce,$extraText);
 		$this->outputPlusFilter($data);

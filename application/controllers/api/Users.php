@@ -31,6 +31,10 @@ class Users extends API_Parent {
 		}
 		parent::niceReturn($returnData,$code,false);
 	}
+	public function logout(){
+		$this->session->sess_destroy();
+		parent::niceReturn(["success"=>true]);
+	}
 	public function register(){
 		//make sure the user is not logged in
 		parent::redirectLoggedIn();

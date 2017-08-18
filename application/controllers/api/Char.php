@@ -21,13 +21,13 @@ class Char extends API_Parent {
 				$data["canEdit"]=true;
 			}
 		}
-		echo json_encode($data);
+		parent::niceReturn($data);
 	}
 	public function getCharList($rpCode){
 		$this->load->model("Rp_model");
 		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpCode);
 		$data=$this->Character_model->getCharListByRPCode($rpCode,$isGM);
-		echo json_encode($data);
+		parent::niceReturn($data);
 	}
 	public function getAbilitiesByCharInRP($rpCode){
 		$this->load->model("Rp_model");
@@ -39,7 +39,7 @@ class Char extends API_Parent {
 			$charactersNoHidden = $this->Character_model->getCharListByRPCode($rpCode,$isGM);
 			$data = $this->Character_model->getAbilitiesByCharList($charactersNoHidden["characters"]);
 		}
-		echo json_encode($data);
+		parent::niceReturn($data);
 	}
 	public function createCharacter($rpCode){
 		$checkOn = [

@@ -54,7 +54,7 @@ $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 //api
 	//user
-		$route['api/logout']                      =  "browser/Users/logout";
+		$route['api/logout']                  =  "api/Users/logout";
 		$route["api/login"]["POST"]           =  "api/Users/login";
 		$route['api/users/(:any)']["GET"]     =  "api/Users/profile/$1";
 		$route["api/users"]["POST"]           =  "api/Users/register";
