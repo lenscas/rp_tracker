@@ -52,33 +52,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'browser/Users/login';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
-//browser
-	//user
-		//user creation
-		$route['register']			=	"browser/Users/register";
-		$route['register/success']	=	"browser/Users/showMade";
-		$route["activation/(:any)"]	=	"browser/Users/activate/$1";
-		//user logout/in
-		$route['login']		=	"browser/Users/login";
-		$route['logout']	=	"browser/Users/logout";
-		//shwoing userData data
-		$route['profile']			=	"browser/Users/profile";
-		$route['profile/(:any)']	=	"browser/Users/profile/$1";
-		$route['character/(:any)']	=	"browser/Users/character/$1";
-	//rp
-		$route['rp/create']					=	"browser/Rp/create";
-		//$route['rp/success/(:any)']			=	"browser/Rp/createChar/$1";
-		
-		$route['rp/list']					=	"browser/Rp/showAllRPs";
-		$route['rp/details/(:any)']			=	"browser/Rp/getRpDetails/$1";
-	//character 
-		$route['rp/character/create/(:any)']=	"browser/Char/createChar/$1";
-		$route['rp/character/view/(:any)']	=	"browser/Char/character/$1";
-		$route['rp/character/list/(:any)']	=	"browser/Char/charList/$1";
-	//battle
-		$route['rp/battle/create/(:any)']	=	"browser/Battle/create/$1";
-		$route['rp/battle/list/(:any)']		=	"browser/Battle/battleList/$1";
-		$route['rp/battle/manage/(:any)']	=	"browser/Battle/manageBattle/$1";
 //api
 	//user
 		$route['api/logout']                      =  "browser/Users/logout";
