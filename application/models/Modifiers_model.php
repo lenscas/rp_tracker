@@ -7,6 +7,7 @@ class Modifiers_model extends MY_model {
 	private $batchSelect="modifiers.name,
 				modifiers.value,
 				modifiers.countDown,
+				modifiers.isBase,
 				modifiers.id AS modifiersId,
 				statsInSheet.name AS statName,
 				statsInSheet.id as statId,
