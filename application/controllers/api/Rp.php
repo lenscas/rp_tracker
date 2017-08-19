@@ -29,6 +29,11 @@ class Rp extends API_Parent {
 	public function getRP($rpCode){
 		$isGM=$this->Rp_model->checkIfGM($this->userId,$rpCode);
 		$rp=$this->Rp_model->getWholeRp($rpCode,$isGM);
+		$result = $this->Rp_model->checkIfJoined($this->userId,$rp->id);
+		$rp->isJoined = false;
+		if($result){
+			$rp->isJoined = true;
+		}
 		unset($rp->id);
 		parent::niceReturn($rp);
 	}
@@ -36,13 +41,12 @@ class Rp extends API_Parent {
 		$rp=$this->Rp_model->getRPByCode($rpCode);
 		if($rp){
 			if($this->Rp_model->joinRp($this->userId,$rp->id)){
-				//echo json_encode(array("success"=>true));
+				parent::niceReturn(["success"=>true,"isJoined"=>true]);
 			} else {
-				//echo json_encode(array("success"=>false,"error"=>"Already Joined"));
+				parent::niceReturn(["success"=>false,"isJoined"=>true]);
 			}
 		} else {
 			parent::niceReturn();
-			//echo json_encode(array("success"=>false,"error"=>"Code is not a valid rp"));
 		}
 		
 	}

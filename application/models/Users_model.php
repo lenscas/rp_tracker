@@ -32,7 +32,7 @@ class Users_model extends MY_Model {
 		$errors=[
 			"error"=>RP_ERROR_NONE,
 			"on"=>array(),
-			"values"=>array()
+			"value"=>array()
 		];
 		$user	=	$this->db->select("*")
 					->from("users")

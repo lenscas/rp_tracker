@@ -42,18 +42,19 @@ class Users extends API_Parent {
 		$success=false;
 		//data that needs to be included in the request.
 		$checkOn =[
-			["username","username","required"],
+			["username","username","required|is_unique[users.username]"],
 			["password","password","required|matches[passwordCheck]"],
 			["passwordCheck","passwordCheck","required"],
-			["mail","email","required|valid_email"]
+			["mail","email","required|valid_email|is_unique[users.email]"]
 		];
 		//get the post data if the request contained everything we needed. Else we exit and give the user the correct error
 		$data = parent::checkAndErr($checkOn,false,false);
 		//register the user and check if there where any more errors
 		$status=$this->Users_model->register($data);
+		//var_dump($status);
 		if($status["error"]){
 			//there was at least 1 error. Time to throw it to the user
-			parent::niceMade($status[0]["error"],"",$status["on"],$status["value"]);
+			parent::niceMade($status["error"],"",$status["on"],$status["value"]);
 		} else {
 			parent::niceMade(RP_ERROR_NONE,"","user","account");
 		}
