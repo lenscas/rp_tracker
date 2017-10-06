@@ -3,8 +3,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Char extends API_Parent {
 	public function __construct(){
-		parent::__construct();
+		parent::__construct(true,true);
 		$this->load->model("Character_model");
+	}
+	public function GetUserIdFromCharCode($rpCode,$charCode){
+		$character = $this->Character_model->getCharacter($charCode,true,true,$rpCode);
+		parent::niceReturn(["userId"=>$character->userId]);
 	}
 	public function getCharacter($rpCode,$charCode){
 		$data=array();

@@ -70,6 +70,7 @@ $route['translate_uri_dashes'] = FALSE;
 		$route["api/rp/(:any)/characters"]["GET"]           = "api/Char/getCharList/$1";
 		$route["api/rp/(:any)/characters"]["POST"]          = "api/Char/CreateCharacter/$1";
 		$route["api/rp/(:any)/characters/(:any)"]["GET"]    = "api/Char/getCharacter/$1/$2";
+		$route["api/rp/(:any)/characters/(:any)/userId"]["GET"] = "api/Char/GetUserIdFromCharCode/$1/$2";
 		//this one has no old equivalant and will not get one.
 		$route["api/rp/(:any)/characters/(:any)"]["PATCH"]  = "api/Char/patchCharacter/$1/$2";
 	//ability list
@@ -99,4 +100,7 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['api/rp/(:any)/battles']["POST"]        =  "api/Battle/createBattle/$1";
 		$route['api/rp/(:any)/battles']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";
 		$route['api/rp/(:any)/battles/(:any)']["GET"]  =  "api/Battle/getBattle/$1/$2";
-	
+		$route["api/rp/(:any)/battles/(:any)/users"]["GET"] = "api/Battle/getAllUsersInBattle/$1/$2";
+	//socket
+		$route["api/socket/config"]["GET"] = "api/Socket/getConfig";
+		$route["api/socket/check/users/(:any)"]["GET"]  = "api/Socket/checkRegisterCode/$1";

@@ -3,12 +3,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Battle extends API_Parent {
 	public function __construct(){
-		parent::__construct();
+		parent::__construct(true,true);
 		$this->load->model("Battle_model");
 		$this->load->model("Rp_model");
 	}
 	
 	public function createBattle($rpCode){
+		parent::forceLogIn();
 		$rules = [
 			["name","name","required"],
 			["characters[]","characters","required"],
@@ -28,6 +29,7 @@ class Battle extends API_Parent {
 		parent::niceMade($error,"rp/".$rpCode."/battles".$battleId,"Battle",$data["name"]);
 	}
 	public function getAllBattlesByRp($rpCode){
+		parent::forceLogIn();
 		$battles	=	$this->Battle_model->getAllBattles($rpCode,true);
 		$charList	=	$this->Battle_model->getAllCharsInBattle($rpCode,true);
 		$this->load->model("Tag_model");
@@ -52,10 +54,15 @@ class Battle extends API_Parent {
 		parent::niceReturn(["battles"=>$battles,"tags"=>$tags]);
 	}
 	public function getBattle($rpCode,$battleId){
-		
+		parent::forceLogIn();
 		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpCode);
 		$battleData= $this->Battle_model->getBattle($rpCode,$battleId,$isGM);
 		parent::niceReturn($battleData);
+	}
+	public function getAllUsersInBattle($rpCode,$battleId){
+		parent::forcePadServer();
+		parent::niceReturn($this->Battle_model->getAllUsersInBattle($rpCode,$battleId));
+		
 	}
 
 }

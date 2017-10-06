@@ -161,4 +161,13 @@ class Battle_model extends MY_model{
 		}
 		return $data;
 	}
+	public function getAllUsersInBattle($rpCode,$battleId){
+		return $this->db->select("players.userId")
+			->from("charsInBattle")
+			->join("characters","characters.id=charsInBattle.charId")
+			->join("players","players.id=characters.playerId")
+			->where("battleId",$battleId)
+			->get()
+			->result();
+	}
 }

@@ -62,17 +62,24 @@ class User_Parent extends CI_Controller {
 		}
 		return $this->putValues;
 	}
+	protected function block(){
+		//if the call is done using ajax we want to be nice and tell the client that he isn't autorazied
+		//if the call is done normally from the browser we just want to redirect
+		if($this->input->is_ajax_request()){
+			$this->output->set_status_header(403)->_display();
+		} else {
+			redirect("login");
+		}
+		die();
+	}
+	public function checkIsLoggedIn(){
+		return $this->session->has_userdata("userId");
+	}
 	//used to force a login
 	public function forceLogIn(){
-		if(!$this->session->has_userdata("userId")){
-			//if the call is done using ajax we want to be nice and tell the client that he isn't autorazied
-			//if the call is done normally from the browser we just want to redirect
-			if($this->input->is_ajax_request()){
-				$this->output->set_status_header(403)->_display();
-			} else {
-				redirect("login");
-			}
-			die();
+		if(!$this->checkIsLoggedIn()){
+			
+			$this->block();
 		}
 	}
 	//used to force a log in and get the user id as well
@@ -85,11 +92,14 @@ class User_Parent extends CI_Controller {
 			redirect("profile");
 		}
 	}
+	
 }
 class API_Parent extends User_Parent{
-	public function __construct($checkLogin=true){
+	public function __construct($checkLogin=true,$newMethod=false){
 		parent::__construct();
-		if($checkLogin){
+		if($newMethod && $checkLogin){
+			$this->forceAuthorized();
+		} elseif ($checkLogin){
 			$this->userId=parent::getIdForced();
 		}
 		$this->output->set_content_type('application/json');
@@ -284,6 +294,31 @@ class API_Parent extends User_Parent{
 		if($die){
 			$this->output->_display();
 			die();
+		}
+	}
+	private function checkIsPad(){
+		$this->config->load("socket");
+		$header = $this->input->get_request_header("pad_token");
+		return $header === $this->config->item("pad_token");
+	}
+	public function forcePadServer(){
+		if(!$this->checkIsPad()){
+			$this->output->set_status_header(422);
+			$this->outputPlusFilter(["message"=>"token missmatch"])->_display();
+			die();
+		} else {
+			return true;
+		}
+	}
+	public function forceAuthorized(){
+		$isAuthorized = parent::checkIsLoggedIn();
+		if($isAuthorized){
+			$this->userId = parent::getIdForced();
+		} else {
+			$isAuthorized = $this->checkIsPad();
+		}
+		if(!$isAuthorized ){
+			parent::block();
 		}
 	}
 }
