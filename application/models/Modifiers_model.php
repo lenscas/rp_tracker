@@ -9,8 +9,9 @@ class Modifiers_model extends MY_model {
 				modifiers.countDown,
 				modifiers.isBase,
 				modifiers.id AS modifiersId,
-				statsInSheet.name AS statName,
-				statsInSheet.id as statId,
+				stats.internalName as intName,
+				stats.name AS statName,
+				stats.id as statId,
 				characters.code";
 	public function getAllModiersByRPCode($rpCode){
 		return	$this->db->select($this->batchSelect)
@@ -18,7 +19,7 @@ class Modifiers_model extends MY_model {
 				->join("players","players.rpId=rolePlays.id")
 				->join("characters","characters.playerId=players.id")
 				->join("modifiers","modifiers.charId=characters.id")
-				->join("statsInSheet","statsInSheet.id=modifiers.statId")
+				->join("stats","stats.id=modifiers.statId")
 				->where("rolePlays.code",$rpCode)
 				->order_by("characters.id")
 				->order_by("modifiers.statId")
@@ -33,7 +34,7 @@ class Modifiers_model extends MY_model {
 		->join("players","players.rpId=rolePlays.id")
 		->join("characters","characters.playerId=players.id")
 		->join("modifiers","modifiers.charId=characters.id")
-		->join("statsInSheet","statsInSheet.id=modifiers.statId");
+		->join("stats","stats.id=modifiers.statId");
 		foreach($charList as $key=>$value){
 			if(isset($value->code)){
 				$this->db->or_where("characters.code",$value->code);
@@ -64,13 +65,12 @@ class Modifiers_model extends MY_model {
 			}
 			$data=$insertData;
 		}
-		
 		$this->db->insert_batch("modifiers",$data);
 	}
 	public function getStatsFromChar($charId){
-		return	$this->db->select("modifiers.value, statsInSheet.name, modifiers.id")
+		return	$this->db->select("modifiers.value, stats.name, modifiers.id")
 				->from("modifiers")
-				->join("statsInSheet","statsInSheet.id=modifiers.statId")
+				->join("stats","stats.id=modifiers.statId")
 				->where("modifiers.isBase",1)
 				->where("modifiers.charId",$charId)
 				->get()
@@ -79,11 +79,32 @@ class Modifiers_model extends MY_model {
 	public function updateModifier($modId,$data){
 		$this->db->where("id",$modId)->update("modifiers",$data);
 	}
+	private function getStatIdByIntNameAndRPID($statIntName,$rpId){
+		return $this->db->select("stats.id")
+			->from("stats")
+			->where("internalName",$statIntName)
+			->where("rpId",$rpId)
+			->limit(1)
+			->get()
+			->row()
+			->id ?? false;
+	}
 	public function insertModifier($data,$charId=false){
-		if($charId){
-			$data['charId']=$charId;
+		$insertData = [
+			"charId"    => $charId!==false ? $charId : $data["charId"],
+			"isBase"    => $data["isBase"] ?? 0,
+			"name"      => $data["name"],
+			"value"     => $data["value"],
+			"countDown" => $data["countDown"]
+		];
+		if(isset($data["intName"]) && isset($data["rpId"])){
+			$insertData["statId"] = $this->getStatIdByIntNameAndRPID($data["intName"],$data["rpId"]);
 		}
-		$this->db->insert("modifiers",$data);
+		$insertData["statId"] = $insertData["statId"] ?? $data["statId"] ?? false;
+		if($insertData["statId"]===false){
+			return false;
+		}
+		$this->db->insert("modifiers",$insertData);
 		return	$this->db->insert_id();
 	}
 	public function getRPfromMod($modId){
@@ -164,5 +185,12 @@ class Modifiers_model extends MY_model {
 		}
 		return RP_ERROR_NONE;
 	}
-	
+	public function getUserIdByMod($modId){
+		return $this->db->select("players.userId")
+			->from("modifiers")
+			->join("characters","modifiers.charId=characters.id")
+			->join("players","characters.playerId=players.id")
+			->limit(1)
+			->get()->row()->userId ?? false;
+	}
 }

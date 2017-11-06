@@ -30,5 +30,15 @@ class My_model extends CI_Model {
 		return $code;
 		
 	}
+	public function prepareInsertData($names, $data,$extraValues=[]){
+		$insertData = [];
+		foreach($data as $key=>$value){
+			$insertData[$key]=$extraValues;
+			foreach($names as $nameKey=>$nameValue){
+				$insertData[$key][$nameValue] = $value[$nameValue] ?? null;
+			}
+		}
+		return $insertData;
+	}
 
 }

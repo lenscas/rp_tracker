@@ -4,24 +4,38 @@ class Rp_model extends MY_Model {
 		parent::__construct();
 	}
 	public function create($userId,$postData){
-		$postData['code']=parent::createCode("rolePlays");
+		//prepare the data
+		$insertData = [
+			"name"                  => $postData["name"],
+			"startingStatAmount"    => $postData["startingStatAmount"],
+			"startingAbilityAmount" => $postData["startingAbilityAmount"],
+			"description"           => $postData["description"],
+			"battleSystemId"        => $postData["battleSystem"]
+		];
+		$insertData['code']=parent::createCode("rolePlays");
 		if(isset($postData['isPrivate']) && $postData['isPrivate']=="true"){
-			$postData['isPrivate']=1;
+			$insertData['isPrivate']=1;
 		} else {
-			$postData['isPrivate']=0;
+			$insertData['isPrivate']=0;
 		}
-		$postData['creator']=$userId;
-		//get the id of the sheet used using the given code.
-		$postData['statSheetId']=$this->db->select("id")->from("statSheets")->where("code",$postData['statSheetCode'])->get()->row()->id;
-		if($postData['statSheetId']){
-			unset($postData['statSheetCode']);
-		}else {
-			return array("success"=>false,"error"=>"The selected statsheet does not exist");
-		}
-		$this->db->insert("rolePlays",$postData);
-		$rpId=$this->db->insert_id();
+		$insertData['creator']=$userId;
+		//insert it all!
+		$this->db->trans_start();
+			$this->db->insert("rolePlays",$insertData);
+			$rpId=$this->db->insert_id();
+			$this->load->model("Stat_model");
+			if($postData["battleSystem"]==="custom"){
+				$this->Stat_model->insertStats($postData["statList"],$rpId);
+				$this->Stat_model->insertActions($postData["actionList"],$rpId);
+			} else {
+				$this->Stat_model->insertStatsUsingDefaultSystem(
+					$postData["battleSystem"],$rpId
+				);
+			}
+			
+		$this->db->trans_complete();
 		$this->joinRp($userId,$rpId,1);
-		return array("success"=>true,"code"=>$postData['code']);
+		return array("success"=>true,"code"=>$insertData['code']);
 	}
 	public function checkIfJoined($userId,$rpId=false,$rpCode=false){
 		$this->db->select("players.id")
@@ -51,21 +65,29 @@ class Rp_model extends MY_Model {
 		
 	}
 	public function getRPByCode($rpCode){
-		return	$this->db->select("rolePlays.id,
-		rolePlays.name,
-		rolePlays.code,
-		rolePlays.isPrivate,
-		rolePlays.startingStatAmount,
-		rolePlays.startingAbilityAmount,
-		rolePlays.description,
-		rolePlays.creator,
-		rolePlays.statSheetId,
-		statSheets.name AS statSheetName")
-				->from("rolePlays")
-				->where("rolePlays.code",$rpCode)
-				->join("statSheets","statSheets.id=rolePlays.statSheetId")
-				->get()
-				->row();
+		$data = $this->db->select("rolePlays.id,
+				rolePlays.name,
+				rolePlays.code,
+				rolePlays.isPrivate,
+				rolePlays.startingStatAmount,
+				rolePlays.startingAbilityAmount,
+				rolePlays.description,
+				rolePlays.creator,
+				battleSystems.name as systemName,
+				battleSystems.internalName as intName"
+			)
+			->from("rolePlays")
+			->join(
+				"battleSystems",
+				"battleSystems.id=rolePlays.battleSystemId",
+				"left"
+			)
+			->where("rolePlays.code",$rpCode)
+			->get()
+			->row();
+		$data->systemName = $data->systemName ?? "Custom";
+		$data->intName = $data->intName ?? "CUST";
+		return $data;
 	}
 	public function checkInRp($userId,$rpId){
 		return	$this->db->select("*")
@@ -113,22 +135,20 @@ class Rp_model extends MY_Model {
 		$rp=$this->getRPByCode($rpCode);
 		if($rp){
 			$config=array();
-			$config['max']=	array("startingStatAmount"=>$rp->startingStatAmount,"startingAbilityAmount"=>$rp->startingAbilityAmount);
-			$config['statSheet']	=	$this->db->select("statsInSheet.id,statsInSheet.name,statsInSheet.description, statRoles.description AS fallbackDescription, statRoles.role")
-										->from("statsInSheet")
-										->join("statRoles","statRoles.id=statsInSheet.roleId")
-										->where("statSheetId",$rp->statSheetId)
-										->get()
-										->result();
+			$config['max'] = [
+				"startingStatAmount"    => $rp->startingStatAmount,
+				"startingAbilityAmount" => $rp->startingAbilityAmount
+			];
+			$config["system"] = $rp->systemName;
+			$config["intName"] = $rp->intName;
+			$this->load->model("Stat_model");
+			$config['statSheet'] = $this->Stat_model->getStats($rp->id);
 			if($userId){
 				$config['isGM']=$this->checkIfGM($userId,$rp->id);
 			}
 			return array ("success"=>true,"data"=>$config);
 		}
 		return array("success"=>false,"error"=>"The rp does not exist");
-	}
-	public function getAllStatSheets(){
-		return $this->db->select("code,name,description")->from("statSheets")->get()->result_array();
 	}
 	public function checkIfGM($userId,$rpId){
 		$result	=	$this->db->select("is_GM")

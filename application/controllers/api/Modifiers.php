@@ -5,59 +5,77 @@ class Modifiers extends API_Parent {
 		parent::__construct();
 		$this->load->model("Modifiers_model");
 	}
-	public function updateModifier($modId){
-		if($this->checkIfValidMod(true)){
-			$this->load->model("Rp_model");
-			$rpId	=	$this->Modifiers_model->getRPfromMod($modId);
-			if($this->Rp_model->checkIfGM($this->userId,$rpId)){
-				$this->Modifiers_model->updateModifier($modId,parent::getPutSafe());
-				echo json_encode(array("success"=>true));
-			}else {
-				echo json_encode(array("success"=>false,"error"=>"You don't have permission to edit this."));
-			}
-		} else {
-			echo json_encode(array("success"=>false,"error"=>"One or more fields are not set correctly."));
-		}
-	}
-	public function insertModifier($charCode){
-		if($this->checkIfValidMod()){
-			$this->load->model("Character_model");
-			$rpId	=	$this->Character_model->getRPIdByChar($charCode);
-			$this->load->model("Rp_model");
-			if($this->Rp_model->checkIfGM($this->userId,$rpId->id)){
-				$character=$this->Character_model->getCharacter($charCode,true,true);
-				$modId=$this->Modifiers_model->insertModifier(parent::getPostSafe(),$character->id);
-				
-				echo json_encode(array("success"=>true,"id"=>$modId));
-			} else {
-				echo json_encode(array("success"=>false,"error"=>"You don't have permission to create this.'"));
-			}
-		}else{
-			echo json_encode(array("success"=>false,"error"=>"One or more fields are not set correctly."));
-		}
-	}
-	private function checkIfValidMod($isPut=false){
-		$this->load->library("form_validation");
-		if($isPut){
-			$this->form_validation->set_data(parent::getPut());
-		}
-		$this->form_validation->set_rules("name","name","required");
-		$this->form_validation->set_rules("value","value","required|integer");
-		$this->form_validation->set_rules("countDown","countDown","required|integer");
-		return $this->form_validation->run();
-	}
-	public function deleteModifier($modId){
-		$rpId	=	$this->Modifiers_model->getRPfromMod($modId);
+	private $rules = [
+		["name","name","required"],
+		["value","value","required|integer"],
+		["countDown","countDown","required|integer"],
+	];
+	public function updateModifier($rpCode,$charCode,$modId){
+		$data =  parent::checkAndErr($this->rules);
+		$rpId = $this->Modifiers_model->getRPfromMod($modId);
 		$this->load->model("Rp_model");
-		if($this->Rp_model->checkIfGM($this->userId,$rpId)){
-			$amountDeleted	=	$this->Modifiers_model->delete($modId);
-			if($amountDeleted){
-				echo json_encode(array("success"=>true));
-			}else {
-				echo json_encode(array("success"=>false,"error"=>"This is a base value and as such can not be deleted. Set it to 0 instead."));
-			}
-		} else {
-			echo json_encode(array("success"=>false,"error"=>"You don't have permission to delete this'"));
+		
+		$allowed = $this->Modifiers_model->getUserIdByMod($modId)===$this->userId; 
+		$allowed = $allowed || $this->Rp_model->checkIfGM($this->userId,$rpId);
+		if($allowed){
+			$this->Modifiers_model->updateModifier($modId,$data);
+			$status = RP_ERROR_NONE;
+		}else {
+			$status = RP_ERROR_NO_PERMISSION;
 		}
+		parent::niceMade([
+			"url" => "rp/".$rpCode."/characters/".$charCode,
+			"resourceKind" =>"Modifier",
+			"resourceName" =>$data["name"],
+			"code" =>200,
+			"status"=> $status
+		]);
 	}
+	public function insertModifier($rpCode,$charCode){
+		$rules = $this->rules;
+		$rules[] = ["intName","intName","required"];
+		$data = parent::checkAndErr($rules);
+		$this->load->model("Character_model");
+		$rpId = $this->Character_model->getRPIdByChar($charCode);
+		$this->load->model("Rp_model");
+		$status = RP_ERROR_NO_PERMISSION;
+		if($this->Rp_model->checkIfGM($this->userId,$rpId->id)){
+			$character=$this->Character_model->getCharacter($charCode,true,true);
+			$data["rpId"] = $rpId->id;
+			$modId=$this->Modifiers_model->insertModifier($data,$character->id);
+			$status = RP_ERROR_NONE;
+			if(!$modId){
+				$status = RP_ERROR_GENERIC;
+			}
+		}
+		parent::niceMade([
+			"url" => "rp/".$rpCode."/characters/".$charCode,
+			"resourceKind" =>"Modifier",
+			"resourceName" =>$data["name"],
+			"status"=> $status
+		]);
+	}
+	public function deleteModifier($rpCode,$charCode,$modId){
+		$rpId = $this->Modifiers_model->getRPfromMod($modId);
+		$this->load->model("Rp_model");
+		$status = RP_ERROR_NO_PERMISSION;
+		if($this->Rp_model->checkIfGM($this->userId,$rpId)){
+			$amountDeleted = $this->Modifiers_model->delete($modId);
+			if($amountDeleted){
+				$status=RP_ERROR_NONE;
+			} else {
+				$status = RP_ERROR_CONFLICT;
+				$customError = "This is a base value and as such can not be deleted. Set it to 0 instead.";
+			}
+		}
+		parent::niceMade([
+			"url" => "rp/".$rpCode."/characters/".$charCode,
+			"resourceKind" =>"Modifier",
+			"resourceName" => "",
+			"status"=> $status,
+			"code" =>200,
+			"custErr" => $customError ?? null
+		]);
+	}
+
 }

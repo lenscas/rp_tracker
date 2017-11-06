@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 06, 2017 at 10:14 PM
+-- Generation Time: Nov 06, 2017 at 08:50 PM
 -- Server version: 10.1.26-MariaDB-0+deb9u1
 -- PHP Version: 7.0.19-1
 
@@ -41,6 +41,20 @@ CREATE TABLE `abilities` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `actions`
+--
+
+DROP TABLE IF EXISTS `actions`;
+CREATE TABLE `actions` (
+  `id` int(11) NOT NULL,
+  `rpId` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `code` longtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `battle`
 --
 
@@ -50,6 +64,20 @@ CREATE TABLE `battle` (
   `rpId` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `link` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `battleSystems`
+--
+
+DROP TABLE IF EXISTS `battleSystems`;
+CREATE TABLE `battleSystems` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `internalName` varchar(255) NOT NULL,
+  `description` longtext NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -93,16 +121,17 @@ CREATE TABLE `charsInBattle` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `includedStats`
+-- Table structure for table `defaultStats`
 --
 
-DROP TABLE IF EXISTS `includedStats`;
-CREATE TABLE `includedStats` (
-  `id` int(11) NOT NULL COMMENT 'This table is deprecated. Might get reworked if deemed nesesary, else will be removed.',
-  `statSheetId` int(11) NOT NULL,
+DROP TABLE IF EXISTS `defaultStats`;
+CREATE TABLE `defaultStats` (
+  `id` int(11) NOT NULL,
+  `battleSystemId` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `role` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `intName` varchar(255) NOT NULL,
+  `description` longtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='this contains default stats for the default stat sheets.';
 
 -- --------------------------------------------------------
 
@@ -151,7 +180,7 @@ CREATE TABLE `rolePlays` (
   `startingAbilityAmount` int(11) NOT NULL,
   `description` longtext NOT NULL,
   `creator` varchar(255) NOT NULL,
-  `statSheetId` int(11) NOT NULL
+  `battleSystemId` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -172,43 +201,16 @@ CREATE TABLE `socketRegisterQueue` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `statRoles`
+-- Table structure for table `stats`
 --
 
-DROP TABLE IF EXISTS `statRoles`;
-CREATE TABLE `statRoles` (
+DROP TABLE IF EXISTS `stats`;
+CREATE TABLE `stats` (
   `id` int(11) NOT NULL,
-  `role` varchar(255) NOT NULL,
-  `description` longtext NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `statSheets`
---
-
-DROP TABLE IF EXISTS `statSheets`;
-CREATE TABLE `statSheets` (
-  `id` int(11) NOT NULL,
-  `code` varchar(7) NOT NULL,
+  `rpId` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `internalName` varchar(255) NOT NULL,
   `description` longtext
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `statsInSheet`
---
-
-DROP TABLE IF EXISTS `statsInSheet`;
-CREATE TABLE `statsInSheet` (
-  `id` int(11) NOT NULL,
-  `statSheetId` int(11) NOT NULL,
-  `roleId` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `description` longtext NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -265,10 +267,23 @@ ALTER TABLE `abilities`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `actions`
+--
+ALTER TABLE `actions`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `battle`
 --
 ALTER TABLE `battle`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `battleSystems`
+--
+ALTER TABLE `battleSystems`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `internalName` (`internalName`);
 
 --
 -- Indexes for table `characters`
@@ -284,9 +299,9 @@ ALTER TABLE `charsInBattle`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `includedStats`
+-- Indexes for table `defaultStats`
 --
-ALTER TABLE `includedStats`
+ALTER TABLE `defaultStats`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -314,21 +329,9 @@ ALTER TABLE `socketRegisterQueue`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `statRoles`
+-- Indexes for table `stats`
 --
-ALTER TABLE `statRoles`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `statSheets`
---
-ALTER TABLE `statSheets`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `statsInSheet`
---
-ALTER TABLE `statsInSheet`
+ALTER TABLE `stats`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -357,57 +360,62 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `abilities`
 --
 ALTER TABLE `abilities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+--
+-- AUTO_INCREMENT for table `actions`
+--
+ALTER TABLE `actions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `battle`
 --
 ALTER TABLE `battle`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+--
+-- AUTO_INCREMENT for table `battleSystems`
+--
+ALTER TABLE `battleSystems`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `charsInBattle`
 --
 ALTER TABLE `charsInBattle`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 --
--- AUTO_INCREMENT for table `includedStats`
+-- AUTO_INCREMENT for table `defaultStats`
 --
-ALTER TABLE `includedStats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'This table is deprecated. Might get reworked if deemed nesesary, else will be removed.';
+ALTER TABLE `defaultStats`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT for table `modifiers`
 --
 ALTER TABLE `modifiers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 --
 -- AUTO_INCREMENT for table `players`
 --
 ALTER TABLE `players`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `rolePlays`
 --
 ALTER TABLE `rolePlays`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 --
 -- AUTO_INCREMENT for table `socketRegisterQueue`
 --
 ALTER TABLE `socketRegisterQueue`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=218;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 --
--- AUTO_INCREMENT for table `statSheets`
+-- AUTO_INCREMENT for table `stats`
 --
-ALTER TABLE `statSheets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
---
--- AUTO_INCREMENT for table `statsInSheet`
---
-ALTER TABLE `statsInSheet`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+ALTER TABLE `stats`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 --
 -- AUTO_INCREMENT for table `tags`
 --
@@ -417,7 +425,7 @@ ALTER TABLE `tags`
 -- AUTO_INCREMENT for table `tagsOnCharacters`
 --
 ALTER TABLE `tagsOnCharacters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

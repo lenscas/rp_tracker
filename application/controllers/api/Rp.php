@@ -6,19 +6,52 @@ class Rp extends API_Parent {
 		parent::__construct();
 		$this->load->model("Rp_model");
 	}
+	private function checkEmpty($array){
+		$allEmpty = true;
+		foreach($array as $key2=>$value2){
+			if($value2){
+				$allEmpty = false;
+				break;
+			}
+		}
+		return $allEmpty;
+	}
+	private function checkIfValidList($array,$rules){
+		$array = $array ?? array();
+		foreach($array as $key=>$value){
+			if($this->checkEmpty($array[$key])){
+				unset($array[$key]);
+			} else {
+				parent::checkAndErr($rules,$value);
+			}
+		}
+		return $array;
+	}
 	public function create(){
-		$data=array("success"=>false);
-		$this->load->library('form_validation');
-				$data=array("success"=>false);
-		$this->load->library('form_validation');
 		$checkOn = [
 			["name","name","required"],
 			["startingStatAmount","startingStatAmount","required|integer"],
 			["startingAbilityAmount","startingAbilityAmount","required|integer"],
-			["description","descripton","required"],
-			["statSheetCode","statSheetCode","required"]
+			["description","description","required"],
+			["battleSystem","battleSystem","required"]
 		];
 		$data = parent::checkAndErr($checkOn);
+		$rules = [
+			["name","name","required"],
+			["internalName","internalName","required"]
+		];
+		$data["statList"] = $this->checkIfValidList(
+			$data["statList"] ?? array(),
+			$rules
+		);
+		$rules = [
+			["name","name","required"],
+			["code","code","required"]
+		];
+		$data["actionList"] = $this->checkIfValidList(
+			$data["actionList"] ?? array(),
+			$rules
+		);
 		$rpData = $this->Rp_model->create($this->userId,$data);
 		parent::niceMade(0,"rp/".$rpData["code"],"Roleplay",$data["name"]);
 	}

@@ -84,18 +84,16 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['api/rp/(:any)/join']["GET"]   =  "api/Rp/join/$1";
 		$route["api/rp/(:any)/config"]["GET"] =  "api/Rp/getRPConfig/$1";
 		$route["api/statsheet"]["GET"]        =  "api/Rp/getAllStatSheets";
-		//$route['api/rp/join/(:any)']        =  "api/Rp/join/$1";
-		//$route['api/rp/getAllStatSheets']   =  "api/Rp/getAllStatSheets";
-		//$route['api/rp/getCharacter/(:any)']  =  "api/Char/getCharacter/$1";
-		//$route['api/rp/getConfig/(:any)']     =  "api/Rp/getRPConfig/$1";
+
 	//modifiers
-		$route["api/rp/(:any)/characters/(:any)/modifiers/(:any)"]["PUT"] = "api/Modifiers/updateModifier/$3";
-		$route["api/rp/(:any)/characters/(:any)/modifiers"]["POST"] = "api/Modifiers/insertModifier/$2";
-		$route["api/rp/(:any)/characters/(:any)/modifiers/(:any)"]["DELETE"] = "api/Modifiers/deleteModifier/$3";
-		//old routes.
-		$route['api/modifiers/(:any)']["PUT"]     =  "api/Modifiers/updateModifier/$1";
-		$route['api/modifiers/(:any)']["POST"]    =  "api/Modifiers/insertModifier/$1";
-		$route['api/modifiers/(:any)']["DELETE"]  =  "api/Modifiers/deleteModifier/$1";
+		$route["api/rp/(:any)/characters/(:any)/modifiers/(:any)"]["PUT"]    = "api/Modifiers/updateModifier/$1/$2/$3";
+		$route["api/rp/(:any)/characters/(:any)/modifiers"]["POST"]          = "api/Modifiers/insertModifier/$1/$2";
+		$route["api/rp/(:any)/characters/(:any)/modifiers/(:any)"]["DELETE"] = "api/Modifiers/deleteModifier/$1/$2/$3";
+
+	//actions
+		$route["api/rp/(:any)/actions"]["GET"] = "api/Actions/getAllActions/$1";
+	//battle Systems
+		$route["api/system"]["GET"] = "api/Stats/getAllDefaultSystems";
 	//battle
 		$route['api/rp/(:any)/battles']["POST"]        =  "api/Battle/createBattle/$1";
 		$route['api/rp/(:any)/battles']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";

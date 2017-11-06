@@ -108,6 +108,7 @@ class API_Parent extends User_Parent{
 		define("RP_ERROR_DUPLICATE",1);//something that needs to be unique in the db wasn't
 		define("RP_ERROR_NOT_FOUND",2);//someting that had to be updated couldn't be found
 		define("RP_ERROR_NO_PERMISSION",3);//The user wanted to update something he had no permission for
+		define("RP_ERROR_CONFLICT",4);//A conflict prevented the operation from being executed
 		define("RP_ERROR_GENERIC",100);//a very generic error occured. :(
 
 	}
@@ -116,6 +117,7 @@ class API_Parent extends User_Parent{
 	//depending on $XSSClean it cleans the data before returning it
 	public function checkAndErr($checkOn,$data=false,$XSSClean=true,$pref=3){
 		$this->load->library('form_validation');
+		$this->form_validation->reset_validation();
 		if($data===false){
 			$data= $this->input->post();
 			if(! $data){
@@ -204,7 +206,7 @@ class API_Parent extends User_Parent{
 	}
 	
 	//this function is used if a resource is made to uniformaly return stuff to the client
-	public function niceMade($data,$urlPart,$resourceKind="",$resourceName="",$pref=3,$correctReturn=201){
+	public function niceMade($data,$urlPart="",$resourceKind="",$resourceName="",$pref=3,$correctReturn=201){
 		if(gettype($data)=="array"){
 			$urlPart = $data["url"];
 			$resourceKind = $data["resourceKind"] ?? "";
@@ -213,11 +215,12 @@ class API_Parent extends User_Parent{
 			$correctReturn = $data["code"] ?? 201;
 			$idInfo = $data["idInfo"] ?? [];
 			$errored = $data["status"] ?? RP_ERROR_NONE;
+			$customError = $data["custError"] ?? null;
 		} else {
 			$errored = $data;
 		}
-		if($errored!=RP_ERROR_NONE){
-			if($errored=RP_ERROR_DUPLICATE){
+		switch($errored){
+			case RP_ERROR_DUPLICATE:
 				$this->output->set_header(409);
 				$body = [
 					"messages" => [
@@ -229,15 +232,46 @@ class API_Parent extends User_Parent{
 					"VALUE" => $resourceKind,
 					"pref"  => $pref
 				];
-			//expand possible errors here
-			} elseif($errored==RP_ERROR_GENERIC) {
-				//a generic error happened :(
+				break;
+			case RP_ERROR_GENERIC:
 				$this->output->set_header(500);
 				$body = [
 					"message"=>"Something broke, please retry later.", 
 					"errorCode"=>$errored,
 				];
-			} else {
+				break;
+			case RP_ERROR_CONFLICT:
+				$this->output->set_header(409);
+				$body = [
+					"messages" => [
+						"A conflict occurred and thus the operation couldn't be executed",
+						"Sorry,The operation couldn't be executed.",
+						$customError ?? "Something wend wrong, please try again later."
+					],
+					"errorCode"=>RP_ERROR_CONFLIC
+				];
+				break;
+			case RP_ERROR_NONE:
+				$body = [
+					//this contains some nice messages that can be displayed to the user if the client wishes to stay on the same page
+					"messages" => [
+						"The item is successfully created",
+						"The ".$resourceKind." is successfully created",
+						$resourceName." is successfully created",
+					],
+					//same as the location header.
+					"link" => base_url("index.php/api/".$urlPart),
+					"name" => $resourceName,
+					"kind" => $resourceKind,
+					"pref" => $pref
+				];
+				if($correctReturn===201){
+					$this->output->set_header("Location: ".$body["link"]);
+				}
+				unset($body["link"]);
+				$this->output->set_status_header($correctReturn);
+				break;
+			default:
 				//something very weird happened....
 				//a generic error happened :(
 				$this->output->set_header(500);
@@ -245,38 +279,17 @@ class API_Parent extends User_Parent{
 					"message"=>"This shouldn't have happened..... :('",
 					"errorCode"=>$errored
 				];
-			}
-			$this->outputPlusFilter($body)->_display();
-			die();
-		} else {
-		$body = [
-				//this contains some nice messages that can be displayed to the user if the client wishes to stay on the same page
-				"messages" => [
-					"The item is successfully created",
-					"The ".$resourceKind." is successfully created",
-					$resourceName." is successfully created",
-				],
-				//same as the location header.
-				"link" => base_url("index.php/api/".$urlPart),
-				"name" => $resourceName,
-				"kind" => $resourceKind,
-				"pref" => $pref
-			];
-			if($correctReturn==201){
-				$this->output->set_header("Location: ".$body["link"]);
-			}
-			$this->output->set_status_header($correctReturn);
-			unset($body["link"]);
-			$this->outputPlusFilter($body)->_display();
-			die();
 		}
+		$this->outputPlusFilter($body)->_display();
+		die();
+
 	}
 	public function niceReturn($data,$responce=200,$allowOverwrite=true,$extraText=null,$die=true){
 		if(gettype($responce)=="array"){
-			$allowOverwrite =($reponce["allowOverWrite"]?? false)|| $reponce["code"]!=200;
+			$allowOverwrite =($reponce["allowOverWrite"]?? false)|| ($responce["code"] ?? 200) !=200;
 			$extraText = $responce["text"] ?? null;
 			$die = $responce["die"] ?? true;
-			$responce = $responce["code"];
+			$responce = $responce["code"] ?? 200;
 		}
 		if(empty($data)){
 			if($allowOverwrite){
@@ -322,4 +335,3 @@ class API_Parent extends User_Parent{
 		}
 	}
 }
-	

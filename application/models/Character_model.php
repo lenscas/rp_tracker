@@ -48,6 +48,7 @@ class Character_model extends MY_model{
 		unset($data['abilities']);
 		$data['playerId']=$player->id;
 		$data['code']=parent::createCode("characters");
+		$this->db->trans_start();
 		$this->db->insert("characters",$data);
 		$data['charId']=$this->db->insert_id();
 		//now, lets insert the abilities, first do the last bit of preperation to the ability array
@@ -64,7 +65,12 @@ class Character_model extends MY_model{
 		$this->Modifiers_model->insert_batch($data['charId'],$stats,true);
 		$this->load->model("Tag_model");
 		$this->Tag_model->linkCharWIthTagByRoleBatch($data["charId"],$tags);
-		return array("success"=>RP_ERROR_NONE,"code"=>$data["code"]);
+		$this->db->trans_complete();
+		$status = RP_ERROR_NONE;
+		if(!$this->db->trans_status()){
+			$status = RP_ERROR_GENERIC;
+		}
+		return ["success"=>$status,"code"=>$data["code"]];
 	}
 	public function setPicture($charId,$fileName,$needChecks=true){
 		if($needChecks){
