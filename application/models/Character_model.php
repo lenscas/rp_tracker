@@ -5,9 +5,17 @@ class Character_model extends MY_model{
 		parent::__construct();
 	}
 	public function getAbilitesFromCharCode($code){
-		return	$this->db->select("abilities.name,abilities.cooldown,abilities.description,abilities.id")
+		return	$this->db->select(
+			"abilities.name,
+			abilities.cooldown,
+			abilities.description,
+			abilities.id,
+			abilities.actionId,
+			actions.code"
+		)
 				->from("abilities")
 				->join("characters","characters.id=abilities.charId")
+				->join("actions","actions.id=abilities.actionId","left")
 				->where("characters.code",$code)
 				->get()
 				->result_array();
@@ -52,11 +60,30 @@ class Character_model extends MY_model{
 		$this->db->insert("characters",$data);
 		$data['charId']=$this->db->insert_id();
 		//now, lets insert the abilities, first do the last bit of preperation to the ability array
+		$this->load->model("Action_model");
+		
 		if($abilities){
 			foreach ($abilities as $key=>$value){
+				if(! $value["name"] ?? false ){
+					unset($abilities[$key]);
+					continue;
+				}
 				$abilities[$key]['charId']=$data['charId'];
-				$abilities[$key]['name']=$abilities[$key]['name'];
+				
+				if($abilities[$key]["code"] ?? false){
+					$abilities[$key]["actionId"] = $this->Action_model->insertAction($rp->id,[
+						"name" => preg_replace("/\s+/","_",$data["name"]+ucfirst($value["name"])),
+						"code" => $value["code"],
+						"description" => $data["description"] ?? null
+					]);
+					
+				}
+				unset($abilities[$key]["code"]);
+				
 			}
+			echo "<pre>";
+		var_dump($abilities);
+		echo "</pre>";
 			$this->db->insert_batch("abilities",$abilities);
 		}
 		
@@ -127,6 +154,22 @@ class Character_model extends MY_model{
 			return array("success"=>false,"error"=>"This character does not exist");
 		}
 	
+	}
+	public function charCodeToCharId($charCode,$rpCode,$useRPId = false){
+		$this->db->select("characters.id")
+			->from("characters")
+			->join("players","players.id=characters.playerId");
+		if($useRPId){
+			$this->db->where("players.rpId",$rpCode);
+		} else {
+			$this->db->join("roleplays","roleplays.id=players.rpId")
+				->where("roleplays.code",$rpCode);
+		}
+		return $this->db->where("characters.code",$charCode)
+			->limit(1)
+			->get()
+			->row()
+			->id ?? false;
 	}
 	public function getCharListByRPCode($rpCode,$includeHidden=false){
 		$data=array();
@@ -263,15 +306,48 @@ class Character_model extends MY_model{
 		}
 		$this->db->limit(1)->update("characters",$data);
 	}
-	public function updateAbilities($charId,$data,$isGM=true,$useCode=false){
+	public function updateAbilities($charCode,$data,$isGM=true,$useCode=false){
 		if($useCode){
-			$res = $this->db->select("id")->from("characters")->limit(1)->where("code",$charId)->get()->row();
+			$res = $this->db->select("characters.id,characters.name,players.rpId")
+				->from("characters")
+				->limit(1)
+				->where("code",$charCode)
+				->join("players","players.id=characters.playerId")
+				->get()
+				->row();
 			if(!$res){
 				return RP_ERROR_NOT_FOUND;
 			}
 			$charId = $res->id;
+			$charName = $res->name;
+			$rpId = $res->rpId;
 		}
+		$this->load->model("Action_model");
 		foreach($data as $key=>$value){
+			$actionCode = $value["code"];
+			unset($value["code"]);
+			$actionId = $this->db->select("actionId")
+				->from("abilities")
+				->where("id",$key)
+				->where("charId",$charId)
+				->limit(1)->get()->row()->actionId ?? null;
+			if($actionCode){
+				$actionData = [
+					"code" => $actionCode,
+					"name" => $charCode . ucfirst($charName),
+					"description" => $value["description"] ?? null
+				];
+				if($actionId){
+					$this->Action_model->updateAction($actionId,$actionData);
+				} else {
+					$actionId = $this->Action_model->insertAction($rpId,$actionData);
+				}
+			} else {
+				if($actionId){
+					$this->Action_model->removeAction($actionId);
+					$actionId = null;
+				}
+			}
 			$this->db->where("id",$key)
 			->limit(1)
 			->where("charId",$charId);
@@ -281,16 +357,15 @@ class Character_model extends MY_model{
 			if(isset($value["description"])){
 				$this->db->set("description",$value["description"]);
 			}
+			$this->db->set("actionId",$actionId);
 			if(isset($value["name"])){
 				$this->db->set("name",$value["name"]);
 			}
 			$this->db->update("abilities");
+			
 		}
 		return RP_ERROR_NONE;
 		
 	}
 	
 }
-
-
-?>

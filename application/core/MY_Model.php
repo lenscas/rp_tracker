@@ -35,6 +35,7 @@ class My_model extends CI_Model {
 		foreach($data as $key=>$value){
 			$insertData[$key]=$extraValues;
 			foreach($names as $nameKey=>$nameValue){
+				$value = (array)$value;
 				$insertData[$key][$nameValue] = $value[$nameValue] ?? null;
 			}
 		}

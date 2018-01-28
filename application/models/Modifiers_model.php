@@ -122,7 +122,7 @@ class Modifiers_model extends MY_model {
 		if($noBase){
 			$this->db->where("isBase",0);
 		}
-		$this->db->delete("modifiers");
+		$this->db->limit(1)->delete("modifiers");
 		return	$this->db->affected_rows(); 
 	}
 	public function getTotalStat($charId,$statRole,$isMultipleChar=false,$byCode=false){
@@ -192,5 +192,19 @@ class Modifiers_model extends MY_model {
 			->join("players","characters.playerId=players.id")
 			->limit(1)
 			->get()->row()->userId ?? false;
+	}
+	public function checkModifierId($modId,$rpId){
+		return isset(
+			$this->db->select("modifiers.id")
+			->from("modifiers")
+			->join("characters","characters.id=modifiers.charId")
+			->join("players","players.id=characters.playerId")
+			->where("modifiers.id",$modId)
+			->where("players.rpId",$rpId)
+			->limit(1)
+			->get()
+			->row()
+			->id
+		);
 	}
 }

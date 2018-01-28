@@ -12,6 +12,32 @@ class User_Parent extends CI_Controller {
 			$this->session->set_userdata(array("noForge"=>$this->sessionData['noForge']));
 		}
 	}
+	//this function is written to get arround the fact that html_escape does not work with multidimensional arrays and/or objects in objects
+	//it solves this problem by using recursion.
+	public function escapeData($data){
+		//check if we are dealing with an array or an object
+		$dataType=gettype($data);
+		if($dataType=="array" || $dataType=="object"){
+			//we are dealing with an object/array. To make it save to json_encode we need to escape all its values
+			//start by looping over it
+			foreach($data as $key=>$value){
+				//get the escaped value
+				$newData = $this->escapeData($value);
+				//because php's syntax is diffrent for setting values in objects and arrays we need to check which of the two we are dealing with
+				if($dataType=="object"){
+					//could have written it as $data->$key but I find that the {} at least help somewhat at showing what exactly goes on here
+					$data->{$key} = $newData;
+				} else {
+					$data[$key]   = $newData;
+				}
+			}
+		} else {
+			//it is something that we can escape directly, lets do it
+			$data = html_escape($data);
+		}
+		//whatever the data was that we where given, it is clean now. Lets return it.
+		return $data;
+	}
 	//check if the request really comes from the user and not something else
 	public function checkLegit($code,$mode="error",$to="profile"){
 		if($code != $this->sessionData['noForge']){
@@ -42,23 +68,36 @@ class User_Parent extends CI_Controller {
 	}
 	private $putValues;
 	public function getPutSafe($alsoGiveError=false){
+		$put=$this->escapeData($this->getPut());
 		if($alsoGiveError){
-			$put=$this->getPut();
-			$cleanPut=$this->security->xss_clean($put);
 			$safe=false;
 			if($clean===$text){
 				$safe=true;
 			}
 			return array("safe"=>$safe,"clean"=>$clean,"raw"=>$put);
 		} else {
-			return $this->security->xss_clean($this->getPut());
+			return $put;
 		}
 	}
+	public $usedJSON = null;
 	public function getPut(){
 		if(empty($this->putValues)){
-			//we can only access the PUT values from php's input, for some reason
-			//we also need to parse them first
-			parse_str(file_get_contents("php://input"),$this->putValues);
+			if(!$this->input->raw_input_stream){
+				return [];
+			}
+			//TODO make sure to check if parse_str didn't get too much stuff to work with.
+			//php is "nice" enough to just continue with truncated data if it does.
+			$this->usedJSON = false;
+			parse_str($this->input->raw_input_stream,$this->putValues);
+			//var_dump($this->putValues) ;
+			if(count($this->putValues)<=1){
+				$data = (array)json_decode($this->input->raw_input_stream,true);
+				if($data){
+					$this->putValues = $data;
+					//echo "lol?";
+					$this->usedJSON = true;
+				}
+			}
 		}
 		return $this->putValues;
 	}
@@ -109,13 +148,14 @@ class API_Parent extends User_Parent{
 		define("RP_ERROR_NOT_FOUND",2);//someting that had to be updated couldn't be found
 		define("RP_ERROR_NO_PERMISSION",3);//The user wanted to update something he had no permission for
 		define("RP_ERROR_CONFLICT",4);//A conflict prevented the operation from being executed
+		define("RP_ERROR_NOT_PROCESSABLE",5); //the request was good, but we refuse to deal with it.
 		define("RP_ERROR_GENERIC",100);//a very generic error occured. :(
-
+		
 	}
 	//this function just uses $this->form_validation->run() to see if all the data is present and give the correct responce back to the client if it doesn't
 	//if $data= false then it uses post data, just as $this->form_validation->run() would.
 	//depending on $XSSClean it cleans the data before returning it
-	public function checkAndErr($checkOn,$data=false,$XSSClean=true,$pref=3){
+	public function checkAndErr($checkOn,$data=false,$XSSClean=false,$pref=3){
 		$this->load->library('form_validation');
 		$this->form_validation->reset_validation();
 		if($data===false){
@@ -143,11 +183,10 @@ class API_Parent extends User_Parent{
 				$data = $this->input->post();
 			}
 			if($XSSClean){
-				$data = html_escape($data);
+				$data = $this->escapeData($data);
 			}
 			return $data;
 		} else {
-			$this->form_validation->run();
 			//seemed the request was missing some things :(
 			//Guess we need to generate an error.
 			$this->output->set_status_header(422);
@@ -167,32 +206,7 @@ class API_Parent extends User_Parent{
 			die();
 		}
 	}
-	//this function is written to get arround the fact that html_escape does not work with multidimensional arrays and/or objects in objects
-	//it solves this problem by using recursion.
-	private function escapeData($data){
-		//check if we are dealing with an array or an object
-		$dataType=gettype($data);
-		if($dataType=="array" || $dataType=="object"){
-			//we are dealing with an object/array. To make it save to json_encode we need to escape all its values
-			//start by looping over it
-			foreach($data as $key=>$value){
-				//get the escaped value
-				$newData = $this->escapeData($value);
-				//because php's syntax is diffrent for setting values in objects and arrays we need to check which of the two we are dealing with
-				if($dataType=="object"){
-					//could have written it as $data->$key but I find that the {} at least help somewhat at showing what exactly goes on here
-					$data->{$key} = $newData;
-				} else {
-					$data[$key]   = $newData;
-				}
-			}
-		} else {
-			//it is something that we can escape directly, lets do it
-			$data = html_escape($data);
-		}
-		//whatever the data was that we where given, it is clean now. Lets return it.
-		return $data;
-	}
+	
 	public function outputPlusFilter($data){
 		//cast it to an array as sometimes we get an object instead of an array
 		//it doesn't matter anyway for the rest of the functions
@@ -208,7 +222,7 @@ class API_Parent extends User_Parent{
 	//this function is used if a resource is made to uniformaly return stuff to the client
 	public function niceMade($data,$urlPart="",$resourceKind="",$resourceName="",$pref=3,$correctReturn=201){
 		if(gettype($data)=="array"){
-			$urlPart = $data["url"];
+			$urlPart = $data["url"] ?? "";
 			$resourceKind = $data["resourceKind"] ?? "";
 			$resournceName = $data["resourceName"] ?? "";
 			$pref = $data["pref"] ?? 3;
@@ -221,7 +235,7 @@ class API_Parent extends User_Parent{
 		}
 		switch($errored){
 			case RP_ERROR_DUPLICATE:
-				$this->output->set_header(409);
+				$this->output->set_status_header(409);
 				$body = [
 					"messages" => [
 						"One or more given values are already in use.",
@@ -234,21 +248,28 @@ class API_Parent extends User_Parent{
 				];
 				break;
 			case RP_ERROR_GENERIC:
-				$this->output->set_header(500);
+				$this->output->set_status_header(500);
 				$body = [
-					"message"=>"Something broke, please retry later.", 
+					"message"=> $customError ?? "Something broke, please retry later.", 
 					"errorCode"=>$errored,
 				];
 				break;
+			case RP_ERROR_NOT_PROCESSABLE:
+				$this->output->set_status_header(422);
+				$body = [
+					"message"   => $customError ?? "Request is invalid.",
+					"errorCode" => $errored,
+				];
+				break;
 			case RP_ERROR_CONFLICT:
-				$this->output->set_header(409);
+				$this->output->set_status_header(409);
 				$body = [
 					"messages" => [
 						"A conflict occurred and thus the operation couldn't be executed",
 						"Sorry,The operation couldn't be executed.",
 						$customError ?? "Something wend wrong, please try again later."
 					],
-					"errorCode"=>RP_ERROR_CONFLIC
+					"errorCode"=>RP_ERROR_CONFLICT
 				];
 				break;
 			case RP_ERROR_NONE:

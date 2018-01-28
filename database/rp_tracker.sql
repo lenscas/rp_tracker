@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 06, 2017 at 08:50 PM
+-- Generation Time: Jan 28, 2018 at 01:24 PM
 -- Server version: 10.1.26-MariaDB-0+deb9u1
 -- PHP Version: 7.0.19-1
 
@@ -31,10 +31,11 @@ USE `rp_tracker`;
 DROP TABLE IF EXISTS `abilities`;
 CREATE TABLE `abilities` (
   `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `cooldown` int(11) NOT NULL,
-  `description` longtext NOT NULL,
   `charId` int(11) NOT NULL,
+  `actionId` int(11) DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` longtext NOT NULL,
+  `cooldown` int(11) NOT NULL,
   `countDown` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -49,7 +50,8 @@ CREATE TABLE `actions` (
   `id` int(11) NOT NULL,
   `rpId` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `code` longtext NOT NULL
+  `code` longtext NOT NULL,
+  `description` text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -121,6 +123,21 @@ CREATE TABLE `charsInBattle` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `defaultActions`
+--
+
+DROP TABLE IF EXISTS `defaultActions`;
+CREATE TABLE `defaultActions` (
+  `id` int(11) NOT NULL,
+  `battleSystemId` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `code` longtext NOT NULL,
+  `description` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `defaultStats`
 --
 
@@ -132,6 +149,21 @@ CREATE TABLE `defaultStats` (
   `intName` varchar(255) NOT NULL,
   `description` longtext NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='this contains default stats for the default stat sheets.';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `helper_functions`
+--
+
+DROP TABLE IF EXISTS `helper_functions`;
+CREATE TABLE `helper_functions` (
+  `id` int(11) NOT NULL,
+  `battleSystemId` int(11) NOT NULL,
+  `name` varchar(30) NOT NULL,
+  `params` varchar(255) NOT NULL,
+  `code` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -299,9 +331,21 @@ ALTER TABLE `charsInBattle`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `defaultActions`
+--
+ALTER TABLE `defaultActions`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `defaultStats`
 --
 ALTER TABLE `defaultStats`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `helper_functions`
+--
+ALTER TABLE `helper_functions`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -360,17 +404,17 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `abilities`
 --
 ALTER TABLE `abilities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 --
 -- AUTO_INCREMENT for table `actions`
 --
 ALTER TABLE `actions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 --
 -- AUTO_INCREMENT for table `battle`
 --
 ALTER TABLE `battle`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 --
 -- AUTO_INCREMENT for table `battleSystems`
 --
@@ -380,42 +424,52 @@ ALTER TABLE `battleSystems`
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 --
 -- AUTO_INCREMENT for table `charsInBattle`
 --
 ALTER TABLE `charsInBattle`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+--
+-- AUTO_INCREMENT for table `defaultActions`
+--
+ALTER TABLE `defaultActions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 --
 -- AUTO_INCREMENT for table `defaultStats`
 --
 ALTER TABLE `defaultStats`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
+-- AUTO_INCREMENT for table `helper_functions`
+--
+ALTER TABLE `helper_functions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+--
 -- AUTO_INCREMENT for table `modifiers`
 --
 ALTER TABLE `modifiers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1630;
 --
 -- AUTO_INCREMENT for table `players`
 --
 ALTER TABLE `players`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `rolePlays`
 --
 ALTER TABLE `rolePlays`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 --
 -- AUTO_INCREMENT for table `socketRegisterQueue`
 --
 ALTER TABLE `socketRegisterQueue`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 --
 -- AUTO_INCREMENT for table `stats`
 --
 ALTER TABLE `stats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 --
 -- AUTO_INCREMENT for table `tags`
 --

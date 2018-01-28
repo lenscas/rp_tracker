@@ -66,7 +66,7 @@ class Char extends API_Parent {
 		return $default;
 	}
 	public function patchCharacter($rpCode,$charCode){
-		$data = $this->getPutSafe();
+		$data = $this->getPut();
 		$isGM = false; //this gets changed by checkIfUserMayEdit() to reflect if the user is an GM or not
 		$error = RP_ERROR_NONE;
 		$name = $charCode;

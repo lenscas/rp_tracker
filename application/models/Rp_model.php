@@ -24,6 +24,7 @@ class Rp_model extends MY_Model {
 			$this->db->insert("rolePlays",$insertData);
 			$rpId=$this->db->insert_id();
 			$this->load->model("Stat_model");
+			$this->load->model("Action_model");
 			if($postData["battleSystem"]==="custom"){
 				$this->Stat_model->insertStats($postData["statList"],$rpId);
 				$this->Stat_model->insertActions($postData["actionList"],$rpId);
@@ -31,11 +32,20 @@ class Rp_model extends MY_Model {
 				$this->Stat_model->insertStatsUsingDefaultSystem(
 					$postData["battleSystem"],$rpId
 				);
+				$this->Action_model->copyDefaultActionsToRP(
+					$postData["battleSystem"],$rpId
+				);
 			}
 			
 		$this->db->trans_complete();
 		$this->joinRp($userId,$rpId,1);
 		return array("success"=>true,"code"=>$insertData['code']);
+	}
+	public function rpCodeToId($rpCode){
+		return $this->db->select("id")
+			->from("rolePlays")
+			->where("code",$rpCode)
+			->limit(1)->get()->row()->id ?? false;
 	}
 	public function checkIfJoined($userId,$rpId=false,$rpCode=false){
 		$this->db->select("players.id")
@@ -150,14 +160,21 @@ class Rp_model extends MY_Model {
 		}
 		return array("success"=>false,"error"=>"The rp does not exist");
 	}
-	public function checkIfGM($userId,$rpId){
-		$result	=	$this->db->select("is_GM")
-					->from("players")
-					->where("users.id",$userId)
-					->where("is_GM",1)
-					->join("users","users.id=players.userId")
-					->get()
-					->row();
+	public function checkIfGM($userId,$rpId,$useCode=false){
+		$this->db->select("is_GM")
+			->from("players")
+			->join("users","users.id=players.userId")
+			->where("users.id",$userId)
+			->where("is_GM",1);
+		if($useCode){
+			$this->db->join("rolePlays","players.rpId=rolePlays.id")
+			->where("rolePlays.code",$rpId);
+		}else {
+			$this->db->where("players.rpId",$rpId);
+		}
+			$result =$this->db->limit(1)
+				->get()
+				->row();
 		if($result){
 			return true;
 		} else {

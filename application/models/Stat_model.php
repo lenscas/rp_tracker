@@ -17,13 +17,9 @@ class Stat_model extends MY_Model {
 		return $this->db->select("id,name,internalName,description")
 			->from("stats")->where("rpId",$rpId)->get()->result() ?? array();
 	}
-	public function getAllDefaultStats(){
-		$defaultBattleSystems = $this->db->select("id,name,internalName,description")
-			->from("battleSystems")
-			->get()
-			->result() ?? array();
+	public function getAllDefaultStatsBySystems($battleSystems){
 		$stats = array();
-		foreach($defaultBattleSystems as $key=>$value){
+		foreach($battleSystems as $key=>$value){
 			$insertArr = ["battleSystem"=>$value,"stats"=>array()];
 			$insertArr["stats"] = $this->db->select("name,intName,description")
 				->from("defaultStats")

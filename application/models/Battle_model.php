@@ -27,6 +27,18 @@ class Battle_model extends MY_model{
 		}
 		$this->db->insert_batch("charsInBattle",$insertData);
 	}
+	public function getAllBattleSystems(){
+		return $this->db->select("id,name,internalName,description")
+			->from("battleSystems")
+			->get()
+			->result() ?? array();
+	}
+	public function insertCharInBattle($battleId,$charData){
+		$this->db->insert("charsInBattle",$charData);
+	}
+	public function updateCharacter($where,$charData){
+		$this->db->where($where)->limit(1)->update("charsInBattle",$charData);
+	}
 	//$rpId this automatically puts the rpId in the new array. Usefull when preparing to insert it, not so usefull otherwise.
 	//$makeIsTurnValue this automatically makes a value that shows who's turn it is. Usefull when inserting, maybe not so much otherwise
 	public function decideOrder($charList,$makeIsTurnValue=false,$battleId=false){
@@ -105,9 +117,6 @@ class Battle_model extends MY_model{
 			$result=$this->db->group_by("charsInBattle.id")
 				->get()
 				->result();
-		/*
-		echo $this->db->last_query();
-		die;//*/
 		return $result;
 	}
 	public function getRPCodeByBattle($battleId){
@@ -169,5 +178,20 @@ class Battle_model extends MY_model{
 			->where("battleId",$battleId)
 			->get()
 			->result();
+	}
+	public function checkIfBattleInRP($rpId,$battleId,$useCode = false){
+		$this->db->select("battle.id")
+		->from("battle")
+		->where("battle.id",$battleId);
+		if($useCode){
+			$this->db->join("rolePlays","rolePlays.id=battle.rpId")
+			->where("rolePlays.code",$rpId);
+		} else {
+			$this->db->where("rpId",$rpId);
+		}
+		return (bool)$this->db->limit(1)
+		->get()
+		->row()
+		->id ?? false;
 	}
 }

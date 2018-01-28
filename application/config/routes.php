@@ -92,8 +92,10 @@ $route['translate_uri_dashes'] = FALSE;
 
 	//actions
 		$route["api/rp/(:any)/actions"]["GET"] = "api/Actions/getAllActions/$1";
+		$route["api/rp/(:any)/battles/(:any)/actions/(:any)/run"]["POST"] = "api/Actions/runAction/$1/$2/$3";
+		$route["api/rp/(:any)/battles/(:any)/env"]["PUT"] = "api/Battle/saveDeltas/$1/$2";
 	//battle Systems
-		$route["api/system"]["GET"] = "api/Stats/getAllDefaultSystems";
+		$route["api/system"]["GET"] = "api/Battle/getAllBattleSystems";
 	//battle
 		$route['api/rp/(:any)/battles']["POST"]        =  "api/Battle/createBattle/$1";
 		$route['api/rp/(:any)/battles']["GET"]         =  "api/Battle/getAllBattlesByRp/$1";

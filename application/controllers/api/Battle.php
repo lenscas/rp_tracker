@@ -7,7 +7,15 @@ class Battle extends API_Parent {
 		$this->load->model("Battle_model");
 		$this->load->model("Rp_model");
 	}
-	
+	public function getAllBattleSystems(){
+		parent::forceLogIn();
+		$this->load->model("Stat_model");
+		$this->load->model("Action_model");
+		$battleSystems = $this->Battle_model->getAllBattleSystems();
+		$battleSystemsWithStats = $this->Stat_model->getAllDefaultStatsBySystems($battleSystems);
+		$battleSystemStatsAndActions = $this->Action_model->getAllDefaultActionsBySystems($battleSystemsWithStats);
+		parent::niceReturn($battleSystemStatsAndActions,["die"=>true]);
+	}
 	public function createBattle($rpCode){
 		parent::forceLogIn();
 		$rules = [
@@ -63,6 +71,44 @@ class Battle extends API_Parent {
 		parent::forcePadServer();
 		parent::niceReturn($this->Battle_model->getAllUsersInBattle($rpCode,$battleId));
 		
+	}
+	public function saveDeltas($rpCode,$battleId){
+		parent::forceLogin();
+		$data = parent::getPut();
+		if(!$this->usedJSON){
+			parent::niceMade([
+				"status"  => RP_ERROR_NOT_PROCESSABLE,
+				"custError" => "Use JSON instead of a query string to send data. php may truncate some of the data otherwise."
+			]);
+		}
+		$rpId = $this->Rp_model->rpCodeToId($rpCode);
+		$isGM = $this->Rp_model->checkIfGM($rpId,$battleId);
+		$isBattleFromRP = $this->Battle_model->checkIfBattleInRP($rpId,$battleId);
+		if($isBattleFromRP){
+			$this->load->model("Action_model");
+			
+			$error = $this->Action_model->saveDeltas($data,$battleId,$rpId);
+			$data = array();
+			if($error["error"]){
+				$data["status"] =RP_ERROR_GENERIC;
+			} else {
+				$data["status"] = RP_ERROR_NONE;
+			}
+			$data["code"] = 200;
+			$data["resourceKind"] = "Battle Enviroment";
+			$data["resourceName"] = "Battle Enviroment";
+			$data["url"]          = "/rp/".$rpCode."/battles/".$battleId;
+			if($error["message"] ?? false){
+				$data["custError"] = $error["message"];
+			}
+			parent::niceMade($data);
+		} else {
+			parent::niceMade([
+				"status" => RP_ERROR_NO_PERMISSION,
+				"url"    => "/rp/".$rpCode."/battles/".$battleId
+				
+			]);
+		}
 	}
 
 }

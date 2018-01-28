@@ -6,8 +6,4 @@ class Stats extends API_Parent {
 		parent::__construct();
 		$this->load->model("Stat_model");
 	}
-	public function getAllDefaultSystems(){
-		$systems = $this->Stat_model->getAllDefaultStats();
-		parent::niceReturn($systems,["die"=>true]);
-	}
 }
