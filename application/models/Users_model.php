@@ -93,6 +93,10 @@ class Users_model extends MY_Model {
 		$this->db->where($user);
 		$this->db->update("users",array("activationCode"=>"","hasActivated"=>1));
 	}
+	public function getUserName($userId){
+		return $this->db->select("username")
+			->from("users")->where("id",$userId)->limit(1)->get()->row();
+	}
 	public function getUserData($userId){
 		$data=array();
 		$data	=	$this->db->select("username")

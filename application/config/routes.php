@@ -57,16 +57,11 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['api/logout']                  =  "api/Users/logout";
 		$route["api/login"]["POST"]           =  "api/Users/login";
 		$route['api/users/(:any)']["GET"]     =  "api/Users/profile/$1";
+		$route["api/users/(:any)/username"]["GET"] = "api/users/getName/$1";
 		$route["api/users"]["POST"]           =  "api/Users/register";
+		 
 		//$route['api/profile/(:any)'] =  "api/Users/profile/$1";
 	//characters
-		//the first (:any) refers to the rp_code
-		//the old routes. THESE WILL BE REMOVED!
-		$route["api/characters/(:any)"]["GET"]        =  "api/Char/getCharList/$1";
-		$route["api/characters/(:any)"]["POST"]       =  "api/Char/CreateCharacter/$1"; //TODO not yet implemented
-		$route['api/characters/(:any)/(:any)']["GET"] =  "api/Char/getCharacter/$1/$2";
-		//the new and better routes. These are the ones you want to use
-		//these are not yet tested but should work.
 		$route["api/rp/(:any)/characters"]["GET"]           = "api/Char/getCharList/$1";
 		$route["api/rp/(:any)/characters"]["POST"]          = "api/Char/CreateCharacter/$1";
 		$route["api/rp/(:any)/characters/(:any)"]["GET"]    = "api/Char/getCharacter/$1/$2";
@@ -75,7 +70,6 @@ $route['translate_uri_dashes'] = FALSE;
 		$route["api/rp/(:any)/characters/(:any)"]["PATCH"]  = "api/Char/patchCharacter/$1/$2";
 	//ability list
 		$route["api/rp/(:any)/abilities"]["GET"] = "api/Char/getAbilitiesByCharInRP/$1";
-		$route['api/abilities/(:any)']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$1";
 		$route['api/rp/(:any)/characters/(:any)/abilities/']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$2";
 	//rp
 		$route["api/rp"]["POST"]              =  "api/Rp/create";
@@ -83,7 +77,6 @@ $route['translate_uri_dashes'] = FALSE;
 		$route['api/rp/(:any)']["GET"]        =  "api/Rp/getRP/$1";
 		$route['api/rp/(:any)/join']["GET"]   =  "api/Rp/join/$1";
 		$route["api/rp/(:any)/config"]["GET"] =  "api/Rp/getRPConfig/$1";
-		$route["api/statsheet"]["GET"]        =  "api/Rp/getAllStatSheets";
 
 	//modifiers
 		$route["api/rp/(:any)/characters/(:any)/modifiers/(:any)"]["PUT"]    = "api/Modifiers/updateModifier/$1/$2/$3";

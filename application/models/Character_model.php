@@ -81,9 +81,6 @@ class Character_model extends MY_model{
 				unset($abilities[$key]["code"]);
 				
 			}
-			echo "<pre>";
-		var_dump($abilities);
-		echo "</pre>";
 			$this->db->insert_batch("abilities",$abilities);
 		}
 		
@@ -162,8 +159,8 @@ class Character_model extends MY_model{
 		if($useRPId){
 			$this->db->where("players.rpId",$rpCode);
 		} else {
-			$this->db->join("roleplays","roleplays.id=players.rpId")
-				->where("roleplays.code",$rpCode);
+			$this->db->join("rolePlays","rolePlays.id=players.rpId")
+				->where("rolePlays.code",$rpCode);
 		}
 		return $this->db->where("characters.code",$charCode)
 			->limit(1)

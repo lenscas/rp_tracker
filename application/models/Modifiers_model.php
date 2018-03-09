@@ -26,6 +26,17 @@ class Modifiers_model extends MY_model {
 				->get()
 				->result_array();
 	}
+	public function getModifierIds($modId){
+		return $this->db->select("
+			modifiers.id    AS modId,
+			characters.code AS charCode,
+			rolePlays.code  AS rpCode
+		")->from("modifiers")
+		->join("characters","characters.id=modifiers.charId")
+		->join("players","players.id=characters.playerId")
+		->join("rolePlays","rolePlays.id=players.rpId")
+		->where("modifiers.id",$modId)->limit(1)->get()->row();
+	}
 	//this is pretty much the same as getAllModiersByRPCode except it works on a list instead of getting everything for each character in an rp
 	public function getAllModsFromCharList($charList){	
 		$count=0;
@@ -77,7 +88,13 @@ class Modifiers_model extends MY_model {
 				->result_array();
 	}
 	public function updateModifier($modId,$data){
-		$this->db->where("id",$modId)->update("modifiers",$data);
+		$insertData = [
+			"name"      => $data["name"],
+			"countDown" => $data["countDown"],
+			"value"     => $data["value"]
+		];
+		$this->db->where("id",$modId)->update("modifiers",$insertData);
+		return $this->db->affected_rows();
 	}
 	private function getStatIdByIntNameAndRPID($statIntName,$rpId){
 		return $this->db->select("stats.id")
@@ -190,6 +207,7 @@ class Modifiers_model extends MY_model {
 			->from("modifiers")
 			->join("characters","modifiers.charId=characters.id")
 			->join("players","characters.playerId=players.id")
+			->where("modifiers.id",$modId)
 			->limit(1)
 			->get()->row()->userId ?? false;
 	}

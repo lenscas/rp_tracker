@@ -30,11 +30,24 @@ class Battle extends API_Parent {
 			$characters=$data['characters'];
 			unset($data['characters']);
 			//create the battle
-			$battleId=$this->Battle_model->createBattle($rp->id,$data);
-			$this->Battle_model->insertCharsInBattle($battleId,$rpCode,$characters);
-			$error = RP_ERROR_NONE;
+			$battleId=$this->Battle_model->createBattle($rp->id,["battle"=>$data,"characters"=>$characters]);
+			if($battleId){
+				$error = RP_ERROR_NONE;
+			} else {
+				$error = RP_ERROR_GENERIC;
+			}
+			
 		}
-		parent::niceMade($error,"rp/".$rpCode."/battles".$battleId,"Battle",$data["name"]);
+		parent::niceMade(
+			[
+				"status" => $error,
+				"url"    => "rp/".$rpCode."/battle/".$battleId,
+				"id"     => $battleId,
+				"resourceKind" => "Battle",
+				"resourceName" => $data["name"],
+			]
+		);
+		//$error,"rp/".$rpCode."/battles".$battleId,"Battle",$data["name"]);
 	}
 	public function getAllBattlesByRp($rpCode){
 		parent::forceLogIn();
@@ -59,7 +72,11 @@ class Battle extends API_Parent {
 				}
 			}
 		}
-		parent::niceReturn(["battles"=>$battles,"tags"=>$tags]);
+		$returnData = ["battles"=>$battles,"tags"=>$tags];
+		if( !$battles){
+			$returnData = null;
+		}
+		parent::niceReturn($returnData);
 	}
 	public function getBattle($rpCode,$battleId){
 		parent::forceLogIn();
@@ -74,17 +91,31 @@ class Battle extends API_Parent {
 	}
 	public function saveDeltas($rpCode,$battleId){
 		parent::forceLogin();
-		$data = parent::getPut();
-		if(!$this->usedJSON){
+		
+		$rpId = $this->Rp_model->rpCodeToId($rpCode);
+		if(!$rpId){
 			parent::niceMade([
-				"status"  => RP_ERROR_NOT_PROCESSABLE,
-				"custError" => "Use JSON instead of a query string to send data. php may truncate some of the data otherwise."
+				"status" => RP_ERROR_NOT_FOUND
 			]);
 		}
-		$rpId = $this->Rp_model->rpCodeToId($rpCode);
 		$isGM = $this->Rp_model->checkIfGM($rpId,$battleId);
 		$isBattleFromRP = $this->Battle_model->checkIfBattleInRP($rpId,$battleId);
 		if($isBattleFromRP){
+			//$rawData = $this->input->raw_input_stream;
+			$data = parent::getPut();
+			if( (!$data) ){
+				parent::niceMade([
+					"status"    => RP_ERROR_NOT_PROCESSABLE,
+					"custError" => "Missing values"
+				]);
+			}
+			if(!$this->usedJSON){
+
+				parent::niceMade([
+					"status"  => RP_ERROR_NOT_PROCESSABLE,
+					"custError" =>print_r(["input"=>$this->input->raw_input_stream,"data"=>$data],true)// "Use JSON instead of a query string to send data. php may truncate some of the data otherwise."
+				]);
+			}
 			$this->load->model("Action_model");
 			
 			$error = $this->Action_model->saveDeltas($data,$battleId,$rpId);

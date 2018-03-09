@@ -83,3 +83,12 @@ defined('EXIT_USER_INPUT')     OR define('EXIT_USER_INPUT', 7); // invalid user 
 defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
+
+//lets define some error codes.
+define("RP_ERROR_NONE",0);//NO ERRORS!
+define("RP_ERROR_DUPLICATE",1);//something that needs to be unique in the db wasn't
+define("RP_ERROR_NOT_FOUND",2);//someting that had to be updated couldn't be found
+define("RP_ERROR_NO_PERMISSION",3);//The user wanted to update something he had no permission for
+define("RP_ERROR_CONFLICT",4);//A conflict prevented the operation from being executed
+define("RP_ERROR_NOT_PROCESSABLE",5); //the request was good, but we refuse to deal with it.
+define("RP_ERROR_GENERIC",100);//a very generic error occured. :(

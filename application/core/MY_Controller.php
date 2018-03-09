@@ -1,9 +1,9 @@
 <?php
-class User_Parent extends CI_Controller {
+class API_Parent extends CI_Controller {
 	//used to make sure the construct of the parent always gets executed
 	public $sessionData;
 	public $userId;
-	public function __construct() {
+	public function __construct($checkLogin=true,$newMethod=false) {
 		parent::__construct();
 		$this->sessionData=$this->session->get_userdata();
 		if(!isset($this->sessionData['noForge'])){
@@ -11,32 +11,30 @@ class User_Parent extends CI_Controller {
 			$this->sessionData['noForge']=random_string("alnum",8);
 			$this->session->set_userdata(array("noForge"=>$this->sessionData['noForge']));
 		}
-	}
-	//this function is written to get arround the fact that html_escape does not work with multidimensional arrays and/or objects in objects
-	//it solves this problem by using recursion.
-	public function escapeData($data){
-		//check if we are dealing with an array or an object
-		$dataType=gettype($data);
-		if($dataType=="array" || $dataType=="object"){
-			//we are dealing with an object/array. To make it save to json_encode we need to escape all its values
-			//start by looping over it
-			foreach($data as $key=>$value){
-				//get the escaped value
-				$newData = $this->escapeData($value);
-				//because php's syntax is diffrent for setting values in objects and arrays we need to check which of the two we are dealing with
-				if($dataType=="object"){
-					//could have written it as $data->$key but I find that the {} at least help somewhat at showing what exactly goes on here
-					$data->{$key} = $newData;
-				} else {
-					$data[$key]   = $newData;
-				}
-			}
-		} else {
-			//it is something that we can escape directly, lets do it
-			$data = html_escape($data);
+		$this->output->set_content_type('application/json');
+		// Allow from any origin
+		if (isset($_SERVER['HTTP_ORIGIN'])) {
+			// Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
+			// you want to allow, and if so:
+			header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+			header('Access-Control-Allow-Credentials: true');
+			header('Access-Control-Max-Age: 86400');    // cache for 1 day
 		}
-		//whatever the data was that we where given, it is clean now. Lets return it.
-		return $data;
+		// Access-Control headers are received during OPTIONS requests
+		if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
+				// may also be using PUT, PATCH, HEAD etc
+				header("Access-Control-Allow-Methods: GET, POST, DELETE, PUT, OPTIONS");
+			if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
+				header("Access-Control-Allow-Headers: ". $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
+			exit(0);
+		}
+		
+		if($newMethod && $checkLogin){
+			$this->forceAuthorized();
+		} elseif ($checkLogin){
+			$this->userId=$this->getIdForced();
+		}
 	}
 	//check if the request really comes from the user and not something else
 	public function checkLegit($code,$mode="error",$to="profile"){
@@ -51,34 +49,7 @@ class User_Parent extends CI_Controller {
 		}
 		return array("success"=>true);
 	}
-	//automatically cleans the input
-	public function getPostSafe($alsoGiveError=false){
-		//$this->load->library("security");
-		if($alsoGiveError){
-			$text=$this->input->post();
-			$clean=$this->security->xss_clean($this->input->post());
-			$safe=false;
-			if($clean===$text){
-				$safe=true;
-			}
-			return array("safe"=>$safe,"clean"=>$clean,"raw"=>$text);
-		} else {
-			return $this->security->xss_clean($this->input->post());
-		}
-	}
 	private $putValues;
-	public function getPutSafe($alsoGiveError=false){
-		$put=$this->escapeData($this->getPut());
-		if($alsoGiveError){
-			$safe=false;
-			if($clean===$text){
-				$safe=true;
-			}
-			return array("safe"=>$safe,"clean"=>$clean,"raw"=>$put);
-		} else {
-			return $put;
-		}
-	}
 	public $usedJSON = null;
 	public function getPut(){
 		if(empty($this->putValues)){
@@ -102,13 +73,7 @@ class User_Parent extends CI_Controller {
 		return $this->putValues;
 	}
 	protected function block(){
-		//if the call is done using ajax we want to be nice and tell the client that he isn't autorazied
-		//if the call is done normally from the browser we just want to redirect
-		if($this->input->is_ajax_request()){
-			$this->output->set_status_header(403)->_display();
-		} else {
-			redirect("login");
-		}
+		$this->output->set_status_header(403)->_display();
 		die();
 	}
 	public function checkIsLoggedIn(){
@@ -117,7 +82,6 @@ class User_Parent extends CI_Controller {
 	//used to force a login
 	public function forceLogIn(){
 		if(!$this->checkIsLoggedIn()){
-			
 			$this->block();
 		}
 	}
@@ -128,49 +92,22 @@ class User_Parent extends CI_Controller {
 	}
 	public function redirectLoggedIn(){
 		if($this->session->has_userdata("userId")){
-			redirect("profile");
+			redirect("api/users/".$this->getIdForced());
+			echo json_encode(["userId"=>$this->session->userId]);
+			die();
 		}
 	}
-	
-}
-class API_Parent extends User_Parent{
-	public function __construct($checkLogin=true,$newMethod=false){
-		parent::__construct();
-		if($newMethod && $checkLogin){
-			$this->forceAuthorized();
-		} elseif ($checkLogin){
-			$this->userId=parent::getIdForced();
-		}
-		$this->output->set_content_type('application/json');
-		//lets define some error codes.
-		define("RP_ERROR_NONE",0);//NO ERRORS!
-		define("RP_ERROR_DUPLICATE",1);//something that needs to be unique in the db wasn't
-		define("RP_ERROR_NOT_FOUND",2);//someting that had to be updated couldn't be found
-		define("RP_ERROR_NO_PERMISSION",3);//The user wanted to update something he had no permission for
-		define("RP_ERROR_CONFLICT",4);//A conflict prevented the operation from being executed
-		define("RP_ERROR_NOT_PROCESSABLE",5); //the request was good, but we refuse to deal with it.
-		define("RP_ERROR_GENERIC",100);//a very generic error occured. :(
-		
-	}
+
 	//this function just uses $this->form_validation->run() to see if all the data is present and give the correct responce back to the client if it doesn't
 	//if $data= false then it uses post data, just as $this->form_validation->run() would.
 	//depending on $XSSClean it cleans the data before returning it
-	public function checkAndErr($checkOn,$data=false,$XSSClean=false,$pref=3){
+	public function checkAndErr($checkOn,$data=false){
 		$this->load->library('form_validation');
 		$this->form_validation->reset_validation();
 		if($data===false){
 			$data= $this->input->post();
 			if(! $data){
-				$fromInput = $this->input->input_stream();
-				if(count($fromInput)==1){
-					$data = (array)json_decode($this->input->raw_input_stream);
-					if(!$data){
-						$data=$fromInput;
-					}
-				} else {
-					$data = $fromInput;
-				}
-				
+				$data = $this->getPut();
 			}
 		}
 		$this->form_validation->set_data($data);
@@ -182,153 +119,57 @@ class API_Parent extends User_Parent{
 			if($data===false){
 				$data = $this->input->post();
 			}
-			if($XSSClean){
-				$data = $this->escapeData($data);
-			}
 			return $data;
 		} else {
 			//seemed the request was missing some things :(
 			//Guess we need to generate an error.
-			$this->output->set_status_header(422);
-			$body = [
-				"messages" => [
-					"One or more required fields where not filled in correctly.",
-					"[ERROR]",
-					"Sorry, but the following errors have been found.\n [ERRORS]"
-				],
-				"errors" => $this->form_validation->error_array()
-			];
-			if($this->session->userId){
-				$body["userId"] = $this->session->userId;
-			}
-			$this->outputPlusFilter($body)->_display();
-			//we don't want the program to do other stuff. So....lets die
-			die();
+			$this->load->view("missingFields");
 		}
 	}
-	
-	public function outputPlusFilter($data){
-		//cast it to an array as sometimes we get an object instead of an array
-		//it doesn't matter anyway for the rest of the functions
-		$data = (array)$data;
-		if(!isset($data["userId"]) && $this->session->userId){
-			$data["userId"] = $this->session->userId;
-		}
-		$data = $this->escapeData($data);
-		$this->output->set_output(json_encode($data));
-		return $this->output;
-	}
-	
+
 	//this function is used if a resource is made to uniformaly return stuff to the client
 	public function niceMade($data,$urlPart="",$resourceKind="",$resourceName="",$pref=3,$correctReturn=201){
+		$id = null;
+		$viewData = array();
 		if(gettype($data)=="array"){
-			$urlPart = $data["url"] ?? "";
-			$resourceKind = $data["resourceKind"] ?? "";
-			$resournceName = $data["resourceName"] ?? "";
-			$pref = $data["pref"] ?? 3;
-			$correctReturn = $data["code"] ?? 201;
-			$idInfo = $data["idInfo"] ?? [];
-			$errored = $data["status"] ?? RP_ERROR_NONE;
-			$customError = $data["custError"] ?? null;
+			$viewData["urlPart"]       = $data["url"]          ?? "";
+			$viewData["resourceKind"]  = $data["resourceKind"] ?? "";
+			$viewData["resourceName"]  = $data["resourceName"] ?? "";
+			$viewData["pref"]          = $data["pref"]         ?? 3;
+			$viewData["correctReturn"] = $data["code"]         ?? 201;
+			$viewData["id"]            = $data["id"]           ?? null;
+			$viewData["errored"]       = $data["status"]       ?? RP_ERROR_NONE;
+			$viewData["customError"]   = $data["custError"]    ?? null;
+			$viewData["data"]          = $data["data"]         ?? null;
 		} else {
-			$errored = $data;
+			$viewData["errored"]       = $data;
+			$viewData["urlPart"]       = $urlPart;
+			$viewData["resourceKind"]  = $resourceKind;
+			$viewData["resourceName"]  = $resourceName;
+			$viewData["pref"]          = $pref;
+			$viewData["correctReturn"] = $correctReturn;
+			$viewData["id"]            = $id;
 		}
-		switch($errored){
-			case RP_ERROR_DUPLICATE:
-				$this->output->set_status_header(409);
-				$body = [
-					"messages" => [
-						"One or more given values are already in use.",
-						"[NAME] is already in use",
-						"The given [VALUE] is already in use"
-					],
-					"name"  => $resourceName,
-					"VALUE" => $resourceKind,
-					"pref"  => $pref
-				];
-				break;
-			case RP_ERROR_GENERIC:
-				$this->output->set_status_header(500);
-				$body = [
-					"message"=> $customError ?? "Something broke, please retry later.", 
-					"errorCode"=>$errored,
-				];
-				break;
-			case RP_ERROR_NOT_PROCESSABLE:
-				$this->output->set_status_header(422);
-				$body = [
-					"message"   => $customError ?? "Request is invalid.",
-					"errorCode" => $errored,
-				];
-				break;
-			case RP_ERROR_CONFLICT:
-				$this->output->set_status_header(409);
-				$body = [
-					"messages" => [
-						"A conflict occurred and thus the operation couldn't be executed",
-						"Sorry,The operation couldn't be executed.",
-						$customError ?? "Something wend wrong, please try again later."
-					],
-					"errorCode"=>RP_ERROR_CONFLICT
-				];
-				break;
-			case RP_ERROR_NONE:
-				$body = [
-					//this contains some nice messages that can be displayed to the user if the client wishes to stay on the same page
-					"messages" => [
-						"The item is successfully created",
-						"The ".$resourceKind." is successfully created",
-						$resourceName." is successfully created",
-					],
-					//same as the location header.
-					"link" => base_url("index.php/api/".$urlPart),
-					"name" => $resourceName,
-					"kind" => $resourceKind,
-					"pref" => $pref
-				];
-				if($correctReturn===201){
-					$this->output->set_header("Location: ".$body["link"]);
-				}
-				unset($body["link"]);
-				$this->output->set_status_header($correctReturn);
-				break;
-			default:
-				//something very weird happened....
-				//a generic error happened :(
-				$this->output->set_header(500);
-				$body = [
-					"message"=>"This shouldn't have happened..... :('",
-					"errorCode"=>$errored
-				];
-		}
-		$this->outputPlusFilter($body)->_display();
-		die();
-
+		$viewData["newItemCreated"]    = true;
+		$this->load->view("basicOutput",$viewData);
 	}
-	public function niceReturn($data,$responce=200,$allowOverwrite=true,$extraText=null,$die=true){
+	public function niceReturn($data,$responce=200){
+		$viewData = array();
 		if(gettype($responce)=="array"){
-			$allowOverwrite =($reponce["allowOverWrite"]?? false)|| ($responce["code"] ?? 200) !=200;
-			$extraText = $responce["text"] ?? null;
-			$die = $responce["die"] ?? true;
-			$responce = $responce["code"] ?? 200;
-		}
-		if(empty($data)){
-			if($allowOverwrite){
-				$responce = 404;
-			}
+			$viewData["correctReturn"] = $responce["code"] ?? 200;
+		} else {
+			$viewData["correctReturn"] = $responce;
 		}
 		$data = (array)$data;
 		if(! ($data["data"] ?? false)){
-			$temp = $data;
-			unset($data);
-			$data["data"] = $temp;
+			$data = ["data"=>$data];
 		}
-		$this->output->set_status_header($responce,$extraText);
-		$this->outputPlusFilter($data);
-		if($die){
-			$this->output->_display();
-			die();
+		$viewData["data"] = $data["data"];
+		$viewData["errored"] = RP_ERROR_NONE;
+		if(empty($data["data"])){
+			$viewData["errored"] = RP_ERROR_NOT_FOUND;
 		}
+		$this->load->view("basicOutput",$viewData);
 	}
 	private function checkIsPad(){
 		$this->config->load("socket");
@@ -345,9 +186,9 @@ class API_Parent extends User_Parent{
 		}
 	}
 	public function forceAuthorized(){
-		$isAuthorized = parent::checkIsLoggedIn();
+		$isAuthorized = $this->checkIsLoggedIn();
 		if($isAuthorized){
-			$this->userId = parent::getIdForced();
+			$this->userId = $this->getIdForced();
 		} else {
 			$isAuthorized = $this->checkIsPad();
 		}

@@ -95,6 +95,9 @@ class Rp_model extends MY_Model {
 			->where("rolePlays.code",$rpCode)
 			->get()
 			->row();
+		if(!$data){
+			return null;
+		}
 		$data->systemName = $data->systemName ?? "Custom";
 		$data->intName = $data->intName ?? "CUST";
 		return $data;

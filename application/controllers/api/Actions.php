@@ -32,8 +32,8 @@ class Actions extends API_Parent {
 		$this->load->model("Lua_model");
 		$result["data"]["modes"] = $this->Lua_model->modes;
 		$result["data"]["kinds"] = $this->Lua_model->kinds;
-		
-		parent::niceReturn($result);
+		$result["data"]["success"] = $result["success"];
+		parent::niceMade($result);
 	}
 
 }

@@ -210,7 +210,11 @@ class Action_model extends MY_model {
 		$rpId = $this->Rp_model->rpCodeToId($rpCode);
 		$config["action"] = $this->getActionName($rpId,$config["actionId"]);
 		if(!$config["action"]){
-			return ["success"=>false,"error"=>"Action does not exist"];
+			return [
+				"success" => false,
+				"error"   => "Action does not exist",
+				"status"  => RP_ERROR_NOT_FOUND
+			];
 		}
 		$this->load->model("Lua_model");
 		$actions = $this->getAllActions($rpCode);

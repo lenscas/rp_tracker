@@ -31,6 +31,9 @@ class Char extends API_Parent {
 		$this->load->model("Rp_model");
 		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpCode);
 		$data=$this->Character_model->getCharListByRPCode($rpCode,$isGM);
+		if(!$data["characters"]){
+			$data = null;
+		}
 		parent::niceReturn($data);
 	}
 	public function getAbilitiesByCharInRP($rpCode){
@@ -55,7 +58,14 @@ class Char extends API_Parent {
 		$postData=parent::checkAndErr($checkOn);
 		//$this->load->model("Character_model");
 		$data=$this->Character_model->creatCharacter($this->userId,$rpCode,$postData);
-		parent::niceMade($data["success"],"rp/".$rpCode."/characters/".$data["code"],"character",$postData["name"]);
+		parent::niceMade(
+		[
+			"status" => $data["success"],
+			"url"    => "rp/".$rpCode."/characters/".$data["code"] ?? null,
+			"resourceKind" => "Character",
+			"resourceName" => $postData["name"],
+			"id"           => $data["code"] ?? null,
+		]);
 	}
 	//not needed anymore now that we are going to use php7
 	private function easyArrayAccess($array,$field,$default=null){

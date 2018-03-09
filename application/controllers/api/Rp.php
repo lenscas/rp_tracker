@@ -53,7 +53,13 @@ class Rp extends API_Parent {
 			$rules
 		);
 		$rpData = $this->Rp_model->create($this->userId,$data);
-		parent::niceMade(0,"rp/".$rpData["code"],"Roleplay",$data["name"]);
+		parent::niceMade([
+			"url"          => "rp/".$rpData["code"],
+			"resourceKind" => "Roleplay",
+			"resourceName" => $data["name"],
+			"id"           => $rpData["code"],
+			"status"       => RP_ERROR_NONE,
+		]);
 	}
 	public function listAllRPs(){
 		$data=$this->Rp_model->getAllRPs();
@@ -62,6 +68,9 @@ class Rp extends API_Parent {
 	public function getRP($rpCode){
 		$isGM=$this->Rp_model->checkIfGM($this->userId,$rpCode);
 		$rp=$this->Rp_model->getWholeRp($rpCode,$isGM);
+		if(!$rp){
+			parent::niceReturn(array());
+		}
 		$result = $this->Rp_model->checkIfJoined($this->userId,$rp->id);
 		$rp->isJoined = false;
 		if($result){
@@ -79,7 +88,7 @@ class Rp extends API_Parent {
 				parent::niceReturn(["success"=>false,"isJoined"=>true]);
 			}
 		} else {
-			parent::niceReturn();
+			parent::niceReturn(array(),404,false);
 		}
 		
 	}
@@ -87,8 +96,5 @@ class Rp extends API_Parent {
 	public function getRPConfig($rpCode){
 		$data = $this->Rp_model->getRPConfigByCode($rpCode,$this->userId);
 		parent::niceReturn($data);
-	}
-	public function getAllStatSheets(){
-		echo json_encode($this->Rp_model->getAllStatSheets());
 	}
 }

@@ -25,10 +25,12 @@ class Users extends API_Parent {
 			"error"=>$error
 		];
 		if($error){
+			var_dump($returnData);
 			$code=422;
 		} else {
 			$returnData["userId"] = $this->session->userId;
 		}
+		
 		parent::niceReturn($returnData,$code,false);
 	}
 	public function logout(){
@@ -66,6 +68,11 @@ class Users extends API_Parent {
 			$RPs[$key]->link = base_url("index.php/api/rp".$value->code);
 		}
 		return $RPs;
+	}
+	public function getName($userId){
+		parent::forceLogIn();
+		$userName = $this->Users_model->getUserName($userId);
+		parent::niceReturn($userName);
 	}
 	public function profile($userId=false){
 		if(! $userId){

@@ -10,18 +10,35 @@ class Modifiers extends API_Parent {
 		["value","value","required|integer"],
 		["countDown","countDown","required|integer"],
 	];
+	private function checkModIdRPCodeAndCharCode($rpCode,$charCode,$modId){
+		$ids = $this->Modifiers_model->getModifierIds($modId);
+		if(! $ids){
+			return RP_ERROR_NOT_FOUND;
+		}
+		if($rpCode !== $ids->rpCode){
+			return RP_ERROR_NOT_FOUND;
+		}
+		if($charCode !== $ids->charCode){
+			return RP_ERROR_NOT_FOUND;
+		}
+		return RP_ERROR_NONE;
+	}
 	public function updateModifier($rpCode,$charCode,$modId){
 		$data =  parent::checkAndErr($this->rules);
-		$rpId = $this->Modifiers_model->getRPfromMod($modId);
 		$this->load->model("Rp_model");
-		
-		$allowed = $this->Modifiers_model->getUserIdByMod($modId)===$this->userId; 
-		$allowed = $allowed || $this->Rp_model->checkIfGM($this->userId,$rpId);
-		if($allowed){
-			$this->Modifiers_model->updateModifier($modId,$data);
-			$status = RP_ERROR_NONE;
-		}else {
-			$status = RP_ERROR_NO_PERMISSION;
+		$rpId = $this->Rp_model->rpCodeToId($rpCode);
+		$userId = $this->Modifiers_model->getUserIdByMod($modId);
+		if($userId && $rpId){
+			$allowed = $userId ===$this->userId;
+			$allowed = $allowed || $this->Rp_model->checkIfGM($this->userId,$rpId);
+			if($allowed){
+				$this->Modifiers_model->updateModifier($modId,$data);
+				$status = RP_ERROR_NONE;
+			}else {
+				$status = RP_ERROR_NO_PERMISSION;
+			}
+		} else {
+			$status = RP_ERROR_NOT_FOUND;
 		}
 		parent::niceMade([
 			"url" => "rp/".$rpCode."/characters/".$charCode,
@@ -35,37 +52,53 @@ class Modifiers extends API_Parent {
 		$rules = $this->rules;
 		$rules[] = ["intName","intName","required"];
 		$data = parent::checkAndErr($rules);
+		
 		$this->load->model("Character_model");
-		$rpId = $this->Character_model->getRPIdByChar($charCode);
 		$this->load->model("Rp_model");
+		$rpId = $this->Rp_model->rpCodeToId($rpCode);
+		
 		$status = RP_ERROR_NO_PERMISSION;
-		if($this->Rp_model->checkIfGM($this->userId,$rpId->id)){
+		if($rpId && $this->Rp_model->checkIfGM($this->userId,$rpId)){
+
 			$character=$this->Character_model->getCharacter($charCode,true,true);
-			$data["rpId"] = $rpId->id;
-			$modId=$this->Modifiers_model->insertModifier($data,$character->id);
-			$status = RP_ERROR_NONE;
-			if(!$modId){
-				$status = RP_ERROR_GENERIC;
+			if($character){
+				$data["rpId"] = $rpId;
+				$modId=$this->Modifiers_model->insertModifier($data,$character->id);
+				$status = RP_ERROR_NONE;
+				if(!$modId){
+					$status = RP_ERROR_GENERIC;
+				}
+			} else {
+				$status = RP_ERROR_NOT_FOUND;
+			}
+		} else{
+			if(!$rpId){
+				$status = RP_ERROR_NOT_FOUND;
 			}
 		}
 		parent::niceMade([
-			"url" => "rp/".$rpCode."/characters/".$charCode,
-			"resourceKind" =>"Modifier",
-			"resourceName" =>$data["name"],
-			"status"=> $status
+			"url"          => "rp/".$rpCode."/characters/".$charCode,
+			"resourceKind" => "Modifier",
+			"resourceName" => $data["name"],
+			"status"       => $status,
+			"id"           => $modId ?? null
 		]);
 	}
 	public function deleteModifier($rpCode,$charCode,$modId){
-		$rpId = $this->Modifiers_model->getRPfromMod($modId);
 		$this->load->model("Rp_model");
-		$status = RP_ERROR_NO_PERMISSION;
-		if($this->Rp_model->checkIfGM($this->userId,$rpId)){
-			$amountDeleted = $this->Modifiers_model->delete($modId);
-			if($amountDeleted){
-				$status=RP_ERROR_NONE;
+		$status = $status = $this->checkModIdRPCodeAndCharCode($rpCode, $charCode,$modId);
+		if($status ===RP_ERROR_NONE){
+			$rpId = $this->Rp_model->rpCodeToId($rpCode);
+			if($this->Rp_model->checkIfGM($this->userId,$rpId)){
+				$amountDeleted = $this->Modifiers_model->delete($modId);
+				if($amountDeleted){
+					$status=RP_ERROR_NONE;
+				} else {
+					$status = RP_ERROR_CONFLICT;
+					$customError = "This is a base value and as such can not be deleted. Set it to 0 instead.";
+				}
 			} else {
-				$status = RP_ERROR_CONFLICT;
-				$customError = "This is a base value and as such can not be deleted. Set it to 0 instead.";
+				$status = RP_ERROR_NO_PERMISSION;
 			}
 		}
 		parent::niceMade([

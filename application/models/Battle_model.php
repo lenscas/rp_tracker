@@ -5,16 +5,34 @@ class Battle_model extends MY_model{
 		parent::__construct();
 	}
 	public function createBattle($rpId,$data){
+		$chars = false;
+		if($data["battle"]){
+			$this->db->trans_start();
+			$chars = $data["characters"];
+			unset($data["characters"]);
+			$data = $data["battle"];
+		}
 		$data["rpId"]=$rpId;
 		$this->db->insert("battle",$data);
-		return $this->db->insert_id();
+		$battleId = $this->db->insert_id();
+		if($chars){
+			$this->insertCharsInBattle($battleId,$rpId,$chars);
+			$this->db->trans_complete();
+			if($this->db->trans_status()===false){
+				$battleId = null;
+			}
+		}
+		return $battleId;
 	}
 	public function insertCharsInBattle($battleId,$rpId,$data,$useRPCode=false){
+		if(empty($data)){
+			return false;
+		}
 		$insertData=array();
 		$this->load->model("Character_model");
 		$turnOrder=0;
 		foreach($data as $key => $value){
-			$characterId = $this->Character_model->getCharacter($value,true,true,$rpId)->id ?? null;
+			$characterId = $this->Character_model->charCodeToCharId($value,$rpId,!$useRPCode);
 			if(empty($characterId)){
 				continue;
 			}
@@ -25,7 +43,11 @@ class Battle_model extends MY_model{
 				"isTurn"   => $turnOrder==1
 			];
 		}
+		if(empty($insertData)){
+			return false;
+		}
 		$this->db->insert_batch("charsInBattle",$insertData);
+		return true;
 	}
 	public function getAllBattleSystems(){
 		return $this->db->select("id,name,internalName,description")
@@ -38,58 +60,6 @@ class Battle_model extends MY_model{
 	}
 	public function updateCharacter($where,$charData){
 		$this->db->where($where)->limit(1)->update("charsInBattle",$charData);
-	}
-	//$rpId this automatically puts the rpId in the new array. Usefull when preparing to insert it, not so usefull otherwise.
-	//$makeIsTurnValue this automatically makes a value that shows who's turn it is. Usefull when inserting, maybe not so much otherwise
-	public function decideOrder($charList,$makeIsTurnValue=false,$battleId=false){
-		$newList=array();
-		//generate all the rolls
-		foreach($charList as $key=>$value){
-			$charList[$key]['totalRoll']=0;
-			for($rolls=0;$rolls<$value['evade_defense'];$rolls++){
-				$charList[$key]['totalRoll']=$charList[$key]['totalRoll']+mt_rand(1,10);
-			}
-		}
-		//set the counters correctly
-		$counter=1;
-		$isTurn=1;
-		//make it loop for as long as there are characters in the list
-		$remember=array();
-		while (count($charList)){
-			//this is used if an higher value is found
-			$highest=0;
-			//loop over all the chars and compare
-			foreach($charList as $key=>$value){
-				//it found a value that is higher then the previos highest value. Clear the remember array and update $highest
-				if($highest<$value['totalRoll']){
-					$remember=array($key);
-					$highest=$value['totalRoll'];
-					//it found something with the same value. Update $remember
-				}elseif($highest==$value['totalRoll']){
-					$remember[]=$key;
-				}
-			}
-			//it found multiple highest values. Shuffle them
-			if(count($remember)!=1){
-				shuffle($remember);
-			}
-			//insert them all
-			foreach($remember as $key=>$value){
-				$newData=array("charId"=>$charList[$value]['id'],"turnOrder"=>$counter);
-				if($battleId){
-					$newData['battleId']=$battleId;
-				}
-				if($makeIsTurnValue){
-					$newData['isTurn']=$isTurn;
-				}
-				$newList[]=$newData;
-				$counter=$counter+1;
-				unset($charList[$value]);
-				$isTurn=0;
-			}
-		}
-		//return the new array
-		return $newList;
 	}
 	public function getAllBattles($rpId,$useRPCode){
 		$this->db->select("battle.id,battle.name,battle.link")
@@ -189,9 +159,9 @@ class Battle_model extends MY_model{
 		} else {
 			$this->db->where("rpId",$rpId);
 		}
-		return (bool)$this->db->limit(1)
+		return (bool)($this->db->limit(1)
 		->get()
 		->row()
-		->id ?? false;
+		->id ?? false);
 	}
 }
