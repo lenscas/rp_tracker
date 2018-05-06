@@ -28,12 +28,24 @@ class Modifiers extends API_Parent {
 		$this->load->model("Rp_model");
 		$rpId = $this->Rp_model->rpCodeToId($rpCode);
 		$userId = $this->Modifiers_model->getUserIdByMod($modId);
+		$alertData = array();
 		if($userId && $rpId){
-			$allowed = $userId ===$this->userId;
+			$allowed = $userId === $this->userId;
 			$allowed = $allowed || $this->Rp_model->checkIfGM($this->userId,$rpId);
 			if($allowed){
 				$this->Modifiers_model->updateModifier($modId,$data);
 				$status = RP_ERROR_NONE;
+				echo $this->userId,"\n";
+				echo $userId;
+				if($this->userId !== $userId){
+					echo "yep";
+					$alertData["vars"] = [
+						"CHARCODE" => $charCode,
+						"RP_CODE"  => $rpCode
+					];
+					$alertData["users"] = [$userId];
+					$alertData["type"]  = "mod_change";
+				}
 			}else {
 				$status = RP_ERROR_NO_PERMISSION;
 			}
@@ -45,19 +57,21 @@ class Modifiers extends API_Parent {
 			"resourceKind" =>"Modifier",
 			"resourceName" =>$data["name"],
 			"code" =>200,
-			"status"=> $status
+			"status"=> $status,
+			"alertData" => $alertData
 		]);
 	}
 	public function insertModifier($rpCode,$charCode){
 		$rules = $this->rules;
 		$rules[] = ["intName","intName","required"];
 		$data = parent::checkAndErr($rules);
-		
+
 		$this->load->model("Character_model");
 		$this->load->model("Rp_model");
 		$rpId = $this->Rp_model->rpCodeToId($rpCode);
-		
+
 		$status = RP_ERROR_NO_PERMISSION;
+		$alertData = array();
 		if($rpId && $this->Rp_model->checkIfGM($this->userId,$rpId)){
 
 			$character=$this->Character_model->getCharacter($charCode,true,true);
@@ -67,6 +81,15 @@ class Modifiers extends API_Parent {
 				$status = RP_ERROR_NONE;
 				if(!$modId){
 					$status = RP_ERROR_GENERIC;
+				} else {
+					$alertData = [
+						"type"  => "mod_change",
+						"users" => [$character->userId],
+						"vars"  => [
+							"CHARCODE" => $charCode,
+							"RP_CODE"  => $rpCode
+						]
+					];
 				}
 			} else {
 				$status = RP_ERROR_NOT_FOUND;
@@ -81,18 +104,32 @@ class Modifiers extends API_Parent {
 			"resourceKind" => "Modifier",
 			"resourceName" => $data["name"],
 			"status"       => $status,
-			"id"           => $modId ?? null
+			"id"           => $modId ?? null,
+			"alertData"    => $alertData
 		]);
 	}
 	public function deleteModifier($rpCode,$charCode,$modId){
 		$this->load->model("Rp_model");
-		$status = $status = $this->checkModIdRPCodeAndCharCode($rpCode, $charCode,$modId);
-		if($status ===RP_ERROR_NONE){
+		$status = $this->checkModIdRPCodeAndCharCode($rpCode, $charCode,$modId);
+		$alertData = array();
+		if($status === RP_ERROR_NONE){
 			$rpId = $this->Rp_model->rpCodeToId($rpCode);
 			if($this->Rp_model->checkIfGM($this->userId,$rpId)){
 				$amountDeleted = $this->Modifiers_model->delete($modId);
 				if($amountDeleted){
 					$status=RP_ERROR_NONE;
+					$this->load->model("Character_model");
+					$userId = $this->Character_model->charCodeToUserId($charCode,$rpCode);
+					if($userId !== $this->userId){
+						$alertData = [
+							"vars" => [
+								"RP_CODE"  => $rpCode,
+								"CHARCODE" => $charCode
+							],
+							"type" => "mod_change",
+							"users" => [$userId],
+						];
+					}
 				} else {
 					$status = RP_ERROR_CONFLICT;
 					$customError = "This is a base value and as such can not be deleted. Set it to 0 instead.";
@@ -107,7 +144,8 @@ class Modifiers extends API_Parent {
 			"resourceName" => "",
 			"status"=> $status,
 			"code" =>200,
-			"custErr" => $customError ?? null
+			"custErr" => $customError ?? null,
+			"alertData" => $alertData
 		]);
 	}
 

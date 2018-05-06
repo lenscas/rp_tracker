@@ -29,7 +29,7 @@ class API_Parent extends CI_Controller {
 				header("Access-Control-Allow-Headers: ". $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
 			exit(0);
 		}
-		
+
 		if($newMethod && $checkLogin){
 			$this->forceAuthorized();
 		} elseif ($checkLogin){
@@ -141,6 +141,14 @@ class API_Parent extends CI_Controller {
 			$viewData["errored"]       = $data["status"]       ?? RP_ERROR_NONE;
 			$viewData["customError"]   = $data["custError"]    ?? null;
 			$viewData["data"]          = $data["data"]         ?? null;
+			if($data["alertData"] ?? false){
+				try{
+					$this->load->view("alert",["alertData"=>$data["alertData"]]);
+				}
+				catch(Exception $e){
+					error_log("couldn't register.");
+				}
+			}
 		} else {
 			$viewData["errored"]       = $data;
 			$viewData["urlPart"]       = $urlPart;
@@ -157,6 +165,9 @@ class API_Parent extends CI_Controller {
 		$viewData = array();
 		if(gettype($responce)=="array"){
 			$viewData["correctReturn"] = $responce["code"] ?? 200;
+			if($responce["alertData"] ?? false){
+				$this->load->view("alert",["alertData"=>$responce["alertData"]]);
+			}
 		} else {
 			$viewData["correctReturn"] = $responce;
 		}
@@ -170,6 +181,7 @@ class API_Parent extends CI_Controller {
 			$viewData["errored"] = RP_ERROR_NOT_FOUND;
 		}
 		$this->load->view("basicOutput",$viewData);
+		die();
 	}
 	private function checkIsPad(){
 		$this->config->load("socket");
@@ -179,7 +191,7 @@ class API_Parent extends CI_Controller {
 	public function forcePadServer(){
 		if(!$this->checkIsPad()){
 			$this->output->set_status_header(422);
-			$this->outputPlusFilter(["message"=>"token missmatch"])->_display();
+			$this->output->set_output(json_encode(["message"=>"token missmatch"]))->_display();
 			die();
 		} else {
 			return true;

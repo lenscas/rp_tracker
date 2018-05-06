@@ -35,7 +35,7 @@ class Character_model extends MY_model{
 		}
 		//only GM's are allowed to make hidden characters
 		$tags=[];
-		if($player->is_GM && ! empty($data['isHidden']) && $data["isHidden"]){	
+		if($player->is_GM && ! empty($data['isHidden']) && $data["isHidden"]){
 			$tags[]="hidden";
 		}
 		unset($data['isHidden']);
@@ -61,7 +61,6 @@ class Character_model extends MY_model{
 		$data['charId']=$this->db->insert_id();
 		//now, lets insert the abilities, first do the last bit of preperation to the ability array
 		$this->load->model("Action_model");
-		
 		if($abilities){
 			foreach ($abilities as $key=>$value){
 				if(! $value["name"] ?? false ){
@@ -69,21 +68,19 @@ class Character_model extends MY_model{
 					continue;
 				}
 				$abilities[$key]['charId']=$data['charId'];
-				
 				if($abilities[$key]["code"] ?? false){
 					$abilities[$key]["actionId"] = $this->Action_model->insertAction($rp->id,[
 						"name" => preg_replace("/\s+/","_",$data["name"]+ucfirst($value["name"])),
 						"code" => $value["code"],
 						"description" => $data["description"] ?? null
 					]);
-					
 				}
 				unset($abilities[$key]["code"]);
-				
 			}
-			$this->db->insert_batch("abilities",$abilities);
+			if($abilities){
+				$this->db->insert_batch("abilities",$abilities);
+			}
 		}
-		
 		//now its time to insert the stats. First we load in the modifiers model
 		$this->load->model("Modifiers_model");
 		$this->Modifiers_model->insert_batch($data['charId'],$stats,true);
@@ -94,11 +91,10 @@ class Character_model extends MY_model{
 		if(!$this->db->trans_status()){
 			$status = RP_ERROR_GENERIC;
 		}
-		return ["success"=>$status,"code"=>$data["code"]];
+		return ["success"=>$status,"code"=>$data["code"],"rpId"=>$rp->id];
 	}
 	public function setPicture($charId,$fileName,$needChecks=true){
 		if($needChecks){
-		
 		}
 		$this->db->set("appearancePicture","assets/uploads/characters/".$fileName)
 		->where("id",$charId)
@@ -150,7 +146,19 @@ class Character_model extends MY_model{
 		} else {
 			return array("success"=>false,"error"=>"This character does not exist");
 		}
-	
+	}
+	public function charCodeToUserId($charCode,$rpCode){
+		return $this->db->select("users.id")
+			->from("characters")
+			->join("players","players.id=characters.playerId")
+			->join("users","users.id=players.userId")
+			->join("rolePlays","rolePlays.id=players.rpId")
+			->where("characters.code",$charCode)
+			->where("rolePlays.code",$rpCode)
+			->limit(1)
+			->get()
+			->row()
+			-> id ?? null;
 	}
 	public function charCodeToCharId($charCode,$rpCode,$useRPId = false){
 		$this->db->select("characters.id")

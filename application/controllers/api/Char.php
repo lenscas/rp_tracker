@@ -41,7 +41,7 @@ class Char extends API_Parent {
 		$isGM =  $this->Rp_model->checkIfGM($this->userId,$rpCode);
 		if($isGM){ //if the user is an GM we can just get all the abilities. This is quicker then getting all the abilities from characters that are not hidden
 			$data=$this->Character_model->getAbilitiesByCharInRP($rpCode);
-			
+
 		} else {
 			$charactersNoHidden = $this->Character_model->getCharListByRPCode($rpCode,$isGM);
 			$data = $this->Character_model->getAbilitiesByCharList($charactersNoHidden["characters"]);
@@ -53,27 +53,33 @@ class Char extends API_Parent {
 			["name","name","required"],
 			["age","age","required|integer"],
 			["backstory","backstory","required"],
-			["personality","personality","required"]
+			["personality","personality","required"],
 		];
 		$postData=parent::checkAndErr($checkOn);
 		//$this->load->model("Character_model");
 		$data=$this->Character_model->creatCharacter($this->userId,$rpCode,$postData);
+		$sendAlertData;
+		if($data){
+			$this->load->model("RP_model");
+			$sendAlertData = [
+				"type"  => "new_char",
+				"users" => $this->Rp_model->getUsersInRP($data["rpId"],[$this->userId]),
+				"vars"  => [
+					"USERID"   => $this->userId,
+					"RP_CODE"  => $rpCode,
+					"CHARCODE" => $data["code"]
+				]
+			];
+		}
 		parent::niceMade(
 		[
-			"status" => $data["success"],
-			"url"    => "rp/".$rpCode."/characters/".$data["code"] ?? null,
+			"status"       => $data["success"],
+			"url"          => "rp/".$rpCode."/characters/".$data["code"] ?? null,
 			"resourceKind" => "Character",
 			"resourceName" => $postData["name"],
 			"id"           => $data["code"] ?? null,
+			"alertData"    => $sendAlertData
 		]);
-	}
-	//not needed anymore now that we are going to use php7
-	private function easyArrayAccess($array,$field,$default=null){
-		if(isset($array[$field])){
-			return $array[$field];
-		}
-		echo "remove call to easyArrayAccess!";
-		return $default;
 	}
 	public function patchCharacter($rpCode,$charCode){
 		$data = $this->getPut();
@@ -86,7 +92,6 @@ class Char extends API_Parent {
 			if(!$this->Character_model->checkIfUserMayEdit($rpCode,$charCode,$this->userId,$isGM)){
 				$error = RP_ERROR_NO_PERMISSION;
 			}
-			
 		} catch (Exception $e) {
 			if($e->getMessage()=="Character does not exist"){
 				$error = RP_ERROR_NOT_FOUND;
@@ -94,7 +99,6 @@ class Char extends API_Parent {
 			} else {
 				throw $e;
 			}
-			
 		}
 		if($error!=RP_ERROR_NONE){
 			$name = $charCode;

@@ -31,12 +31,28 @@ class Battle extends API_Parent {
 			unset($data['characters']);
 			//create the battle
 			$battleId=$this->Battle_model->createBattle($rp->id,["battle"=>$data,"characters"=>$characters]);
+			$alertData = array();
 			if($battleId){
 				$error = RP_ERROR_NONE;
+				$alertData["users"] = array();
+				$this->load->model("Character_model");
+				$alertData["debug"] = [
+					"chars" => array(),
+				];
+				foreach($characters as $key=>$char){
+					$alertData["users"][] = $this->
+						Character_model->
+						charCodeToUserId($char,$rpCode,true);
+					$alertData["debug"]["chars"][]=$char;
+				}
+				$alertData["vars"] = [
+					"BATTLE_ID"   => $battleId,
+					"RP_CODE"     => $rpCode
+				];
+				$alertData["type"] = "new_battle";
 			} else {
 				$error = RP_ERROR_GENERIC;
 			}
-			
 		}
 		parent::niceMade(
 			[
@@ -45,9 +61,9 @@ class Battle extends API_Parent {
 				"id"     => $battleId,
 				"resourceKind" => "Battle",
 				"resourceName" => $data["name"],
+				"alertData" => $alertData
 			]
 		);
-		//$error,"rp/".$rpCode."/battles".$battleId,"Battle",$data["name"]);
 	}
 	public function getAllBattlesByRp($rpCode){
 		parent::forceLogIn();
@@ -87,11 +103,11 @@ class Battle extends API_Parent {
 	public function getAllUsersInBattle($rpCode,$battleId){
 		parent::forcePadServer();
 		parent::niceReturn($this->Battle_model->getAllUsersInBattle($rpCode,$battleId));
-		
+
 	}
 	public function saveDeltas($rpCode,$battleId){
 		parent::forceLogin();
-		
+
 		$rpId = $this->Rp_model->rpCodeToId($rpCode);
 		if(!$rpId){
 			parent::niceMade([
@@ -117,7 +133,6 @@ class Battle extends API_Parent {
 				]);
 			}
 			$this->load->model("Action_model");
-			
 			$error = $this->Action_model->saveDeltas($data,$battleId,$rpId);
 			$data = array();
 			if($error["error"]){
@@ -137,7 +152,6 @@ class Battle extends API_Parent {
 			parent::niceMade([
 				"status" => RP_ERROR_NO_PERMISSION,
 				"url"    => "/rp/".$rpCode."/battles/".$battleId
-				
 			]);
 		}
 	}

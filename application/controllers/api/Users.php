@@ -15,9 +15,9 @@ class Users extends API_Parent {
 		/*
 		$this->form_validation->set_rules("username","username","required");
 		$this->form_validation->set_rules("password","password","required");
-		
+
 		if($this->form_validation->run()){
-		*/	
+		*/
 		$error=$this->Users_model->login($data);
 		$code=200;
 		$returnData = [
@@ -30,7 +30,7 @@ class Users extends API_Parent {
 		} else {
 			$returnData["userId"] = $this->session->userId;
 		}
-		
+
 		parent::niceReturn($returnData,$code,false);
 	}
 	public function logout(){
@@ -94,7 +94,6 @@ class Users extends API_Parent {
 		$joinedRPs = $this->Rp_model->getAllJoinedRp($userId);
 		$joinedRPs = $this->createLinksForRPs($joinedRPs);
 		//other data that may or may not be important
-		
 		//now, lets put it in a nice array and send it to the user
 		parent::niceReturn(["joinedRPs"=>$joinedRPs,"madeRPs"=>$madeRPs,"userData"=>$userData],200,false);
 	}

@@ -83,16 +83,28 @@ class Rp extends API_Parent {
 		$rp=$this->Rp_model->getRPByCode($rpCode);
 		if($rp){
 			if($this->Rp_model->joinRp($this->userId,$rp->id)){
-				parent::niceReturn(["success"=>true,"isJoined"=>true]);
+				$sendTo = $this->Rp_model->getUsersInRp($rp->id,[$this->userId]);
+				$alertData = [
+					"users"=>$sendTo,
+					"type"=>"new_player",
+					"vars"=>[
+						"RPCODE"=>$rpCode,
+						"USERID"=>$this->userId,
+					]
+				];
+				parent::niceReturn(
+					["success"=>true,"isJoined"=>true],
+					["alertData"=>$alertData]
+				);
 			} else {
 				parent::niceReturn(["success"=>false,"isJoined"=>true]);
 			}
 		} else {
-			parent::niceReturn(array(),404,false);
+			parent::niceReturn(array());
 		}
-		
+
 	}
-	
+
 	public function getRPConfig($rpCode){
 		$data = $this->Rp_model->getRPConfigByCode($rpCode,$this->userId);
 		parent::niceReturn($data);

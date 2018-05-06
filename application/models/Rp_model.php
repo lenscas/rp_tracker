@@ -36,7 +36,7 @@ class Rp_model extends MY_Model {
 					$postData["battleSystem"],$rpId
 				);
 			}
-			
+
 		$this->db->trans_complete();
 		$this->joinRp($userId,$rpId,1);
 		return array("success"=>true,"code"=>$insertData['code']);
@@ -54,11 +54,9 @@ class Rp_model extends MY_Model {
 		if($rpCode){
 			$this->db->where("rolePlays.code",$rpCode)
 			->join("rolePlays","rolePlays.id=players.rpId");
-			
 		}else {
 			$this->db->where("players.rpId",$rpId);
 		}
-		
 		return $this->db->get()
 		->row();
 	}
@@ -69,10 +67,9 @@ class Rp_model extends MY_Model {
 			->set("rpId",$rpId)
 			->set("is_GM",$isGm)
 			->insert('players');
-			return $this->db->insert_id();	
+			return $this->db->insert_id();
 		}
 		return false;
-		
 	}
 	public function getRPByCode($rpCode){
 		$data = $this->db->select("rolePlays.id,
@@ -139,9 +136,7 @@ class Rp_model extends MY_Model {
 								->get()
 								->row()
 								->username;
-			
 		}
-		
 		return $rp;
 	}
 	public function getRPConfigByCode($rpCode,$userId=false){
@@ -200,5 +195,14 @@ class Rp_model extends MY_Model {
 				->where("players.userId",$userId)
 				->get()
 				->result();
+	}
+	public function getUsersInRp($rpId,$blackList=false){
+		$this->db->select("userId")
+			->from("players")
+			->where("rpId",$rpId);
+		if($blackList){
+			$this->db->where_not_in("userId",$blackList);
+		}
+		return $this->db->get()->result();
 	}
 }
