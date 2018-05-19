@@ -12,7 +12,7 @@ if not returnDeltas then
 			end
 			io.write("}")
 		end
-		io.write("]\n") 
+		io.write("]\n")
 	end
 end
 function Battle(battleData,systemConfig)
@@ -20,9 +20,34 @@ function Battle(battleData,systemConfig)
 	local fun = {}
 	local charset = {}
 
+	local function printTable(ptable,tabs,printStr)
+		tabs = tabs or 0
+		printStr = printStr or ""
+		for key,value in pairs(ptable) do
+			local str = ""
+			for i=0, tabs do
+				str = str .. "\t"
+			end
+			if type(value) == "table" then
+				printStr = printStr..str..key.. "\tTable\n"
+				printStr = printTable(value,tabs+1,printStr)
+			else
+				printStr = printStr..str..key .. "\t"..value.."\n"
+			end
+		end
+		return printStr
+	end
 	local function getDelta(kind,code)
+		if code == nil then
+			code = kind
+			kind = nil
+		end
 		for key,delta in ipairs(deltas) do
-			if delta.what == kind and delta.code == code then
+			if not kind then
+				if delta.code == code then
+					return delta
+				end
+			elseif delta.what == kind and delta.code == code then
 				return delta
 			end
 		end
@@ -49,7 +74,7 @@ function Battle(battleData,systemConfig)
 			end
 		end
 	end
-	
+
 	local function searchMod(character,modId)
 		local workWith = battleData.characters[character.code].modifiers
 		for stat,mods in pairs(workWith) do
@@ -79,7 +104,10 @@ function Battle(battleData,systemConfig)
 	end
 	function fun.print(...)
 		local arg = {...}
-		for key,value in pairs(arg) do
+		if #arg == 0 then
+			arg[#arg+1] = tostring(nil)
+		end
+		for key,value in ipairs(arg) do
 			arg[key] = tostring(value)
 		end
 		table.insert(deltas,{
@@ -130,7 +158,7 @@ function Battle(battleData,systemConfig)
 		)
 		battleData.characters[character.code].modifiers[modifier.statName][modifier.modKey] = nil
 	end
-	
+
 	function fun:updateModifier(character,modId,newData)
 		local modifier = searchMod(character,modId)
 		local sanerData = {
@@ -141,7 +169,6 @@ function Battle(battleData,systemConfig)
 			countDown = newData.countDown,
 			modId     = modifier.modId,
 			name      = modifier.mod.name
-			
 		}
 		table.insert(deltas,sanerData)
 		--for k,v in pairs(modifier) do fun.print(k,v) end
@@ -154,7 +181,7 @@ function Battle(battleData,systemConfig)
 	function fun:insertCharacter(newData)
 		local sanerData = {
 			what = kinds.CHARACTER,
-			mode = mode.INSERT,
+			mode = modes.INSERT,
 			code = createTempCode(function(code) return battleData.characters[code] end),
 			name = newData.name,
 			age  = newData.age,
@@ -198,25 +225,47 @@ function Battle(battleData,systemConfig)
 		end
 		return calcStats
 	end
-	local function printTable(ptable,tabs)
-		tabs = tabs or 0
-		for key,value in pairs(ptable) do
-			for i = 1,tabs do
-				io.write("\t")
-			end
-			if type(value) == "table" then
-				print(key, "Table")
-				printTable(value,tabs+1)
-			else
-				print(key,value)
+	function fun:getNextCharacter(character)
+		local first = nil
+		local nextPot = nil
+		for k,potChar in pairs(battleData.characters) do
+			if tonumber(potChar.turnOrder) == 1 then
+				first = potChar
+			elseif tonumber(potChar.turnOrder) > tonumber(character.turnOrder) then
+				if nextPot then
+					if tonumber(nextPot.turnOrder) > tonumber(potChar.turnOrder) then
+						nextPot = potChar
+					end
+				else
+					nextPot = potChar
+				end
 			end
 		end
+		return nextPot or first
+	end
+	function fun:getCurrentCharacter()
+		for k,char in pairs(battleData.characters) do
+			if tonumber(char.isTurn) == 1 then
+				return char
+			end
+		end
+		local key,char = next(battleData.characters)
+		error("no char found")
+	end
+	function fun:setTurnTo(character)
+		local sanerData = {
+			what    = kinds.NEXT_TURN,
+			mode    = modes.UPDATE,
+			code    = createTempCode(function(code) return false end),
+			nextTurn = character.code
+		}
+		table.insert(deltas,sanerData)
 	end
 	function fun:printBattle()
 		print("battle:")
-		printTable(battleData)
+		fun.print(printTable(battleData))
 		print("delta's")
-		printTable(deltas)
+		fun.print(printTable(deltas))
 	end
 	return fun,deltas
 end

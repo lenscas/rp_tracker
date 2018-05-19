@@ -155,5 +155,61 @@ class Battle extends API_Parent {
 			]);
 		}
 	}
+	public function nextTurn($rpCode,$battleId){
+		parent::forceLogin();
+
+		$rpId = $this->Rp_model->rpCodeToId($rpCode);
+		if(!$rpId){
+			parent::niceMade([
+				"status" => RP_ERROR_NOT_FOUND
+			]);
+		}
+		$isGM = $this->Rp_model->checkIfGM($this->userId,$rpId);
+		$isBattleFromRP = $this->Battle_model->checkIfBattleInRP($rpId,$battleId);
+		if(!$isBattleFromRP){
+			echo ":(";
+			parent::niceMade([
+				"status" => RP_ERROR_NO_PERMISSION,
+				"url"    => "/rp/".$rpCode."/battles/".$battleId
+			]);
+
+		}
+		$mayEnd = $isGM;
+		if(!$mayEnd){
+			$mayEnd = $this->Battle_model->checkIfMayEndTurn($rpCode,$battleId,$this->userId);
+		}
+		if(!$mayEnd){
+			echo "bla";
+			parent::niceMade([
+				"status" => RP_ERROR_NO_PERMISSION,
+				"url"    => "/rp/".$rpCode."/battles/".$battleId,
+			]);
+		}
+		$this->load->model("Lua_model");
+		$this->load->model("Action_model");
+		$actions = $this->Action_model->getAllActions($rpCode);
+		$res = $this->Lua_model->runEnd($rpCode,$battleId,array(),$actions);
+		$this->Action_model->saveDeltas(
+			$res["data"]["deltas"],
+			$battleId,
+			$rpId
+		);
+		$users = $this->Battle_model->getAllUsersFromBattle(
+			$rpId,
+			$battleId,
+			[$this->userId]
+		);
+		parent::niceMade([
+			"status" =>	RP_ERROR_NONE,
+			"alertData" => [
+				"users" =>$users,
+				"type"  => "next_turn",
+				"vars"  => [
+					"BATTLE_ID" => $battleId,
+					"RP_CODE"   => $rpCode
+				]
+			]
+		]);
+	}
 
 }

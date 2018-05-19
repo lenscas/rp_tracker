@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jan 28, 2018 at 01:24 PM
+-- Generation Time: May 13, 2018 at 05:38 PM
 -- Server version: 10.1.26-MariaDB-0+deb9u1
--- PHP Version: 7.0.19-1
+-- PHP Version: 7.0.27-0+deb9u1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -57,6 +57,18 @@ CREATE TABLE `actions` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `alert_secrets`
+--
+
+DROP TABLE IF EXISTS `alert_secrets`;
+CREATE TABLE `alert_secrets` (
+  `id` int(11) NOT NULL,
+  `secret` char(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `battle`
 --
 
@@ -79,7 +91,8 @@ CREATE TABLE `battleSystems` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `internalName` varchar(255) NOT NULL,
-  `description` longtext NOT NULL
+  `description` longtext NOT NULL,
+  `endFunction` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -149,6 +162,19 @@ CREATE TABLE `defaultStats` (
   `intName` varchar(255) NOT NULL,
   `description` longtext NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='this contains default stats for the default stat sheets.';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `default_trigger_types`
+--
+
+DROP TABLE IF EXISTS `default_trigger_types`;
+CREATE TABLE `default_trigger_types` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -275,6 +301,20 @@ CREATE TABLE `tagsOnCharacters` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `trigger_types`
+--
+
+DROP TABLE IF EXISTS `trigger_types`;
+CREATE TABLE `trigger_types` (
+  `id` int(11) NOT NULL,
+  `rpId` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -302,6 +342,12 @@ ALTER TABLE `abilities`
 -- Indexes for table `actions`
 --
 ALTER TABLE `actions`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `alert_secrets`
+--
+ALTER TABLE `alert_secrets`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -340,6 +386,12 @@ ALTER TABLE `defaultActions`
 -- Indexes for table `defaultStats`
 --
 ALTER TABLE `defaultStats`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `default_trigger_types`
+--
+ALTER TABLE `default_trigger_types`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -391,6 +443,12 @@ ALTER TABLE `tagsOnCharacters`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `trigger_types`
+--
+ALTER TABLE `trigger_types`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -409,7 +467,12 @@ ALTER TABLE `abilities`
 -- AUTO_INCREMENT for table `actions`
 --
 ALTER TABLE `actions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+--
+-- AUTO_INCREMENT for table `alert_secrets`
+--
+ALTER TABLE `alert_secrets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `battle`
 --
@@ -441,6 +504,11 @@ ALTER TABLE `defaultActions`
 ALTER TABLE `defaultStats`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
+-- AUTO_INCREMENT for table `default_trigger_types`
+--
+ALTER TABLE `default_trigger_types`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
 -- AUTO_INCREMENT for table `helper_functions`
 --
 ALTER TABLE `helper_functions`
@@ -449,7 +517,7 @@ ALTER TABLE `helper_functions`
 -- AUTO_INCREMENT for table `modifiers`
 --
 ALTER TABLE `modifiers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1630;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1660;
 --
 -- AUTO_INCREMENT for table `players`
 --
@@ -469,7 +537,7 @@ ALTER TABLE `socketRegisterQueue`
 -- AUTO_INCREMENT for table `stats`
 --
 ALTER TABLE `stats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 --
 -- AUTO_INCREMENT for table `tags`
 --
@@ -479,6 +547,11 @@ ALTER TABLE `tags`
 -- AUTO_INCREMENT for table `tagsOnCharacters`
 --
 ALTER TABLE `tagsOnCharacters`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `trigger_types`
+--
+ALTER TABLE `trigger_types`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

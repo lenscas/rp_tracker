@@ -35,10 +35,7 @@ class Modifiers extends API_Parent {
 			if($allowed){
 				$this->Modifiers_model->updateModifier($modId,$data);
 				$status = RP_ERROR_NONE;
-				echo $this->userId,"\n";
-				echo $userId;
 				if($this->userId !== $userId){
-					echo "yep";
 					$alertData["vars"] = [
 						"CHARCODE" => $charCode,
 						"RP_CODE"  => $rpCode
