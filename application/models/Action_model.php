@@ -39,10 +39,10 @@ class Action_model extends MY_model {
 				continue;
 			}
 			if($delta["isInActive"] ?? false){
-				$inActiveDeltaCodes[$delta["code"]] = true;
+				$inActiveDeltaCodes[$delta["what"].$delta["code"]] = true;
 				continue;
 			}
-			if($tempCodesToRealIds[$delta["code"]] ?? false){
+			if($tempCodesToRealIds[$delta["what"].$delta["code"]] ?? false){
 				$error = true;
 				$message = "Delta codes not unique.";
 				break;
@@ -66,7 +66,9 @@ class Action_model extends MY_model {
 							$error = true;
 							break;
 						}
-						$charId = $tempCodesToRealIds[$delta["character"]] ?? false;
+						$charId = $tempCodesToRealIds[
+								$this->Lua_model->kinds["CHARACTER"].$delta["character"]
+							] ?? false;
 						if(!$charId){
 							$charId = $this->Character_model->charCodeToCharId($delta["character"],$rpId,true);
 						}
@@ -90,15 +92,15 @@ class Action_model extends MY_model {
 							$message = "Problem with modifier";
 							break;
 						}
-						$tempCodesToRealIds[$delta["code"]] = $modId;
+						$tempCodesToRealIds[$delta["what"].$delta["code"]] = $modId;
 					}
 				break;
 				case $this->Lua_model->modes["UPDATE"]:
 					if($delta["what"]==$this->Lua_model->kinds["MODIFIER"]){
-						if($inActiveDeltaCodes[$delta["modId"]] ?? false ){
+						if($inActiveDeltaCodes[$delta["what"].$delta["modId"]] ?? false ){
 							break;
 						}
-						$modId = $tempCodesToRealIds[$delta["modId"]] ?? false;
+						$modId = $tempCodesToRealIds[$delta["what"].$delta["modId"]] ?? false;
 						if(!$modId){
 							if($this->Modifiers_model->checkModifierId($delta["modId"],$rpId)){
 								$modId = $delta["modId"];
@@ -118,6 +120,36 @@ class Action_model extends MY_model {
 							}
 						}
 						$this->Modifiers_model->updateModifier($modId,$modData);
+					} elseif ($delta["what"] == $this->Lua_model->kinds["NEXT_TURN"]){
+						$charId = $tempCodesToRealIds[
+							$this->Lua_model->kinds["CHARACTER"] .
+							$delta["nextTurn"]
+						] ?? false;
+						if(!$charId){
+							$rpCode = $this->db->select("code")
+								->from("rolePlays")->where("id",$rpId)
+								->limit(1)->get()->row()->code;
+							$char = $this->Character_model->getCharacter(
+								$delta["nextTurn"],
+								true,
+								true,
+								$rpCode
+							);
+							if(!$char){
+								$error = true;
+								$message = "Character does not exist";
+								break;
+							}
+							$charId= $char->id;
+						}
+						$this->db->where("battleId",$battleId)
+							->where("isTurn",1)
+							->limit(1)
+							->update("charsInBattle",["isTurn"=>0]);
+						$this->db->where("battleId",$battleId)
+							->where("charId",$charId)
+							->update("charsInBattle",["isTurn"=>1]);
+
 					}
 				break;
 				case $this->Lua_model->modes["DELETE"]:
@@ -134,7 +166,6 @@ class Action_model extends MY_model {
 			if($error){
 				break;
 			}
-			
 		}
 		//$this-db->trans_
 		return ["error"=>$error,"message"=>$message];

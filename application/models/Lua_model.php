@@ -6,19 +6,19 @@ class Lua_model extends MY_model {
 		"INSERT"  => 1,
 		"DELETE"  => 2,
 		"UPDATE"  => 3,
-		
 	];
 	public $kinds = [
 		"OUTPUT"    => 0,
 		"ERROR"     => 1,
 		"MODIFIER"  => 2,
 		"CHARACTER" => 3,
+		"NEXT_TURN" => 4,
 	];
 	private $luaScriptPath = APPPATH . "/lua_script_parts/basicSetup.lua";
 	public function __construct(){
 		parent::__construct();
 	}
-	public function runAction($rpCode,$battleId,$config,$actions){
+	private function luaSetup($rpCode,$battleId,$config,$actions){
 		if(!class_exists("Lua")){
 			return ["success"=>false,"PHP-Lua module not found."];
 		}
@@ -41,31 +41,57 @@ class Lua_model extends MY_model {
 		$deltaCont     = &$this->registerReturnFunction($lua);
 		$actionScript  = $this->addHelpers($rpCode);
 		$actionScript .= $this->addActions($actions);
-		$actionScript .= $this->addRunAction(
-			$config["action"],
-			$config["user"],
-			$config["target"]
+		$actionScript .= $this->addEnd($rpCode);
+		return [
+			"lua"       => $lua,
+			"deltaCont" => &$deltaCont,
+			"script"    => $actionScript,
+			"battle"    => $battle
+		];
+	}
+	public function luaExecute($luaSetup){
+		$this->registerVars(
+			$luaSetup["lua"],
+			[
+				"battleEnv"    => $luaSetup["battle"],
+				"actionScript" => $luaSetup["script"]
+			]
 		);
-		$this->registerVars($lua,["battleEnv"=>$battle,"actionScript"=>$actionScript]);
 		$luaScript = file_get_contents($this->luaScriptPath);
 		$error = false;
 		try{
-			$lua->eval($luaScript);
+			$luaSetup["lua"]->eval($luaScript);
 		} catch(Exception $e) {
+			var_dump($e);
 			$error = (string)$e;
 		}
 		$returnData = [
 			"success"=> true,
 			"data"   => [
-				"deltas"=>$this->real_array_shift_by_one( $deltaCont)
+				"deltas"=>$this->real_array_shift_by_one($luaSetup["deltaCont"])
 			],
 		];
 		if($error){
+			echo "wtf!";
 			$returnData["success"] = false;
 			$returnData["error"]   = $error;
-			$returnData["script"]  = $actionScript;
+			$returnData["script"]  = $luaScript;
 		}
 		return $returnData;
+	}
+	public function runEnd($rpCode,$battleId,$config,$actions){
+		$luaSetup = $this->luaSetup($rpCode,$battleId,$config,$actions);
+		$luaSetup["script"] .= "nextTurn()\n";
+		return $this->luaExecute($luaSetup);
+	}
+	public function runAction($rpCode,$battleId,$config,$actions){
+		$luaSetup = $this->luaSetup($rpCode,$battleId,$config,$actions);
+		$luaSetup["script"] .= $this->addRunAction(
+			$config["action"],
+			$config["user"],
+			$config["target"]
+		);
+		return $this->luaExecute($luaSetup);
 	}
 	private function addRunAction($action,$user,$target){
 		return 'actions["' . $action . '"](
@@ -93,6 +119,17 @@ class Lua_model extends MY_model {
 			$str .= 'actions["'. $value->name .'"] =function(user,target,...)'. "\n". $value->code . "\n end \n";
 		}
 		return $str;
+	}
+	private function addEnd($rpCode){
+		$funcBody = $this->db->select("endFunction")
+			->from("battleSystems")
+			->join("rolePlays","rolePlays.battleSystemId=battleSystems.id")
+			->where("rolePlays.code",$rpCode)
+			->limit(1)
+			->get()
+			->row()
+			->endFunction;
+		return "function nextTurn()\n".$funcBody."\n end \n";
 	}
 	private function registerVars($lua,$varList){
 		$varNames = [];
