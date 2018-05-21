@@ -29,14 +29,18 @@ class Lua_model extends MY_model {
 		foreach($rawBattle["characters"] as $charKey=>$charValue){
 			$modifiers= array();
 			foreach($rawBattle["modifiers"] as $modKey=>$modValue){
-				$modifiers[$modValue["intName"]] = $modifiers[$modValue["intName"]] ?? array();
-				$modifiers[$modValue["intName"]][] = $modValue;
+				if($modValue["code"] == $charValue->code){
+					$modifiers[$modValue["intName"]] = $modifiers[$modValue["intName"]] ?? array();
+					$modifiers[$modValue["intName"]][] = $modValue;
+				}
 			}
 			$charData = (array)$charValue;
 			$charData["modifiers"] = $modifiers;
+			unset($modifiers);
 			unset($charData["id"]);
 			$battle["characters"][$charData["code"]]=$charData;
 		}
+		//var_dump($battle);
 		$lua = new Lua();
 		$deltaCont     = &$this->registerReturnFunction($lua);
 		$actionScript  = $this->addHelpers($rpCode);
@@ -72,7 +76,6 @@ class Lua_model extends MY_model {
 			],
 		];
 		if($error){
-			echo "wtf!";
 			$returnData["success"] = false;
 			$returnData["error"]   = $error;
 			$returnData["script"]  = $luaScript;

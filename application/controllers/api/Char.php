@@ -38,7 +38,7 @@ class Char extends API_Parent {
 	}
 	public function getAbilitiesByCharInRP($rpCode){
 		$this->load->model("Rp_model");
-		$isGM =  $this->Rp_model->checkIfGM($this->userId,$rpCode);
+		$isGM =  $this->Rp_model->checkIfGM($this->userId,$rpCode, true);
 		if($isGM){ //if the user is an GM we can just get all the abilities. This is quicker then getting all the abilities from characters that are not hidden
 			$data=$this->Character_model->getAbilitiesByCharInRP($rpCode);
 

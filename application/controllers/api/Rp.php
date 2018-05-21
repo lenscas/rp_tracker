@@ -88,7 +88,7 @@ class Rp extends API_Parent {
 					"users"=>$sendTo,
 					"type"=>"new_player",
 					"vars"=>[
-						"RPCODE"=>$rpCode,
+						"RP_CODE"=>$rpCode,
 						"USERID"=>$this->userId,
 					]
 				];

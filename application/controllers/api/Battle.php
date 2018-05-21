@@ -201,6 +201,10 @@ class Battle extends API_Parent {
 		);
 		parent::niceMade([
 			"status" =>	RP_ERROR_NONE,
+			"data"   => [
+				"deltas" => $res["data"]["deltas"],
+				"res"    => $res
+			],
 			"alertData" => [
 				"users" =>$users,
 				"type"  => "next_turn",

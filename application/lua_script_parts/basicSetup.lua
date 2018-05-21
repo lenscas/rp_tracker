@@ -1,3 +1,4 @@
+
 if not returnDeltas then
 	function returnDeltas(deltas)
 		io.write("[")
@@ -113,6 +114,7 @@ function Battle(battleData,systemConfig)
 		table.insert(deltas,{
 			mode    = modes.NOTHING,
 			what    = kinds.OUTPUT,
+			lol     = "WTF?",
 			message = table.concat(arg,"\t")
 		})
 	end
@@ -171,12 +173,28 @@ function Battle(battleData,systemConfig)
 			name      = modifier.mod.name
 		}
 		table.insert(deltas,sanerData)
-		--for k,v in pairs(modifier) do fun.print(k,v) end
 		local toInsert = {
 			amount = sanerData.amount,
 			countDown = sanerData.countDown
 		}
 		copyOver(modifier.mod, toInsert)
+	end
+	function fun:removeTurnFromMods(character)
+		local allMods = battleData.characters[character.code].modifiers
+		for statName,mods in pairs(allMods) do
+			for k, mod in pairs(mods) do
+				if tonumber(mod.isBase) == 0 then
+					if tonumber(mod.countDown) > -1 then
+						if tonumber(mod.countDown) == 0 then
+							fun:deleteModifier(character,mod.modifiersId)
+						else
+							mod.countDown = mod.countDown - 1
+							fun:updateModifier(character,mod.modifiersId,mod)
+						end
+					end
+				end
+			end
+		end
 	end
 	function fun:insertCharacter(newData)
 		local sanerData = {
@@ -216,7 +234,7 @@ function Battle(battleData,systemConfig)
 	end
 	function fun:getTotalStatsOnChar(char)
 		local calcStats = {}
-		local stats  = battle.characters[char.code].modifiers
+		local stats  = battleData.characters[char.code].modifiers
 		for statName, mods in pairs(stats) do
 			calcStats[statName] = 0
 			for modKey,mod in pairs(mods) do
@@ -229,7 +247,7 @@ function Battle(battleData,systemConfig)
 		local first = nil
 		local nextPot = nil
 		for k,potChar in pairs(battleData.characters) do
-			if tonumber(potChar.turnOrder) == 1 then
+			if tonumber(potChar.turnOrder) == 0 then
 				first = potChar
 			elseif tonumber(potChar.turnOrder) > tonumber(character.turnOrder) then
 				if nextPot then
@@ -241,6 +259,7 @@ function Battle(battleData,systemConfig)
 				end
 			end
 		end
+		--fun.potChar(nextPot.code, first.code)
 		return nextPot or first
 	end
 	function fun:getCurrentCharacter()
@@ -275,7 +294,7 @@ function roll(amount,sides)
 	local total = 0
 	for i=1,amount do
 		local rolled = math.random(sides)
-		table.insert(rolls)
+		table.insert(rolls,rolled)
 		total = total + rolled
 	end
 	return total,rolls
@@ -285,7 +304,7 @@ function rolld20(amount) return roll(amount,20) end
 function rolld6(amount)  return roll(amount,6)  end
 
 local battle,deltas = Battle(battleEnv,config)
-local actionRun = load(actionScript,"Action" ,"bt",{
+local actionRun,message = load(actionScript,"Action" ,"bt",{
 	table    = table,
 	math     = math,
 	string   = string,
@@ -309,12 +328,12 @@ local actionRun = load(actionScript,"Action" ,"bt",{
 })
 
 
-local success,message = nil
+local success = nil
 if actionRun then
 	success,message = pcall(actionRun)
 else
 	success = false
-	message = "Not a valid script/contains syntax errors."
+	--message = "Not a valid script/contains syntax errors."
 end
 
 if not success then
@@ -329,6 +348,11 @@ if not success then
 		what = kinds.ERROR,
 		message = message}
 	)
+	table.insert(newDeltas,{
+		mode = modes.NOTHING,
+		what = kinds.ERROR,
+		message = actionScript
+	})
 	deltas = newDeltas
 end
 returnDeltas(deltas)

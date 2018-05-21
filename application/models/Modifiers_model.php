@@ -88,11 +88,17 @@ class Modifiers_model extends MY_model {
 				->result_array();
 	}
 	public function updateModifier($modId,$data){
-		$insertData = [
-			"name"      => $data["name"],
-			"countDown" => $data["countDown"],
-			"value"     => $data["value"]
+		$insertData = array();
+		$possibleInsertData = [
+			"name" => true,
+			"countDown" => true,
+			"value"   => true
 		];
+		foreach($data as $key=>$value){
+			if($possibleInsertData[$key]){
+				$insertData[$key] = $value;
+			}
+		}
 		$this->db->where("id",$modId)->update("modifiers",$insertData);
 		return $this->db->affected_rows();
 	}

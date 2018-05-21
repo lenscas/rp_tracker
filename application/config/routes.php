@@ -70,7 +70,7 @@ $route['translate_uri_dashes'] = FALSE;
 		$route["api/rp/(:any)/characters/(:any)"]["PATCH"]  = "api/Char/patchCharacter/$1/$2";
 	//ability list
 		$route["api/rp/(:any)/abilities"]["GET"] = "api/Char/getAbilitiesByCharInRP/$1";
-		$route['api/rp/(:any)/characters/(:any)/abilities/']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$2";
+		$route['api/rp/(:any)/characters/(:any)/abilities']["GET"]  =  "api/Char/getAbilitiesByCharInRP/$2";
 	//rp
 		$route["api/rp"]["POST"]              =  "api/Rp/create";
 		$route['api/rp']["GET"]               =  "api/Rp/listAllRPs";

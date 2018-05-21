@@ -210,15 +210,21 @@ class Character_model extends MY_model{
 		return $data;
 	}
 	public function getAbilitiesByCharInRP($rpCode){
-		return	$this->db->select("characters.name,abilities.id,abilities.name as abilityName, abilities.cooldown,abilities.countDown")
-				->from("rolePlays")
-				->join("players","players.RPId=rolePlays.id")
-				->join("characters","characters.playerId=players.id")
-				->join("abilities","abilities.charId=characters.id")
-				->where("rolePlays.code",$rpCode)
-				->order_by("characters.name")
-				->get()
-				->result();
+		return $this->db->select("
+			characters.name,
+			abilities.id,
+			abilities.name as abilityName,
+			abilities.cooldown,
+			abilities.countDown"
+		)
+			->from("rolePlays")
+			->join("players","players.RPId=rolePlays.id")
+			->join("characters","characters.playerId=players.id")
+			->join("abilities","abilities.charId=characters.id")
+			->where("rolePlays.code",$rpCode)
+			->order_by("characters.name")
+			->get()
+			->result();
 	}
 	public function getRPIdByChar($charCode=false,$charId=false){
 		$this->db->select("rolePlays.id")
