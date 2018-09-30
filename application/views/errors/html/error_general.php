@@ -1,3 +1,4 @@
+<h1>This is a general</h1>
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?><!DOCTYPE html>

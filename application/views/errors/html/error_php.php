@@ -1,5 +1,18 @@
 <?php
+
 defined('BASEPATH') OR exit('No direct script access allowed');
+
+$output = new Output();
+
+$output->add("message" , $message);
+$output->add("file" , $filepath);
+$output->add("line" , $line);
+$output->add("trace" , debug_backtrace());
+$output->add("severity",$severity);
+
+$output->setCode(Output::CODES["GENERIC_ERROR"]);
+
+$output->render(true);
 ?>
 
 <div style="border:1px solid #990000;padding-left:20px;margin:0 0 10px 0;">

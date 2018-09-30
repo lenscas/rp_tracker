@@ -5,7 +5,7 @@ class Users_model extends MY_Model {
 		if($user){
 			return $user->id;
 		}
-		
+
 	}
 	public function logIn($data){
 		$result=$this->db->select("*")
@@ -18,42 +18,25 @@ class Users_model extends MY_Model {
 				if(password_verify($data['password'],$result['password'])){
 					$this->session->set_userdata("userId",$result['id']);
 					return false;
-				} else {
-					return "The name or password did not match";
 				}
-			} else {
-				return "The user exist but is not yet activated.";
 			}
-		} else {
-			return "The name or password did not match";
 		}
+		throw new FailedLogin();
 	}
 	public function register($data){
-		$errors=[
-			"error"=>RP_ERROR_NONE,
-			"on"=>array(),
-			"value"=>array()
-		];
-		$user	=	$this->db->select("*")
-					->from("users")
-					->where("username",$data["username"])
-					->or_where("email",$data['mail'])
-					->limit(1)
-					->get()
-					->row_array();
+		$user = $this->db->select("*")
+			->from("users")
+			->where("username",$data["username"])
+			->or_where("email",$data['mail'])
+			->limit(1)
+			->get()
+			->row_array();
 		if($user){
 			if($user['email']==$data['mail']){
-				$errors["error"]=RP_ERROR_DUPLICATE;
-				$error["on"][]="email";
-				$error["value"][]=$data["email"];
+				throw new DuplicateUser("email");
 			}
 			if($user['username']==$data['username']){
-				$errors["error"]=RP_ERROR_DUPLICATE;
-				$error["on"][]="username";
-				$error["value"][]=$data["username"];
-			}
-			if($errors["error"]!=RP_ERROR_NONE){
-				return $errors;
+				throw new DuplicateUser("username");
 			}
 		}
 		$id=parent::generateId("users");
@@ -68,6 +51,7 @@ class Users_model extends MY_Model {
 		);
 		$this->load->library('email');
 		$this->db->insert("users",$insertData);
+		/*
 		$this->email->from('no_reply@mud.com', 'My MUD');
 		$this->email->to($data['mail']);
 		$this->email->subject('Activate account');
@@ -75,7 +59,7 @@ class Users_model extends MY_Model {
 		tml><body><h1>Uw account at My MUD is ready to be activated</h1><p>You can activate it <a href="'.base_url("index.php/activation/".$randomActivationString).'">here</a></p></body></html>');
 
 		$this->email->send();
-		return $errors;
+		*/
 	}
 	//activates the user so he can play. As that is what everyone wants to do these days.
 	public function activate($activateString){
@@ -105,6 +89,9 @@ class Users_model extends MY_Model {
 					->limit(1)
 					->get()
 					->row_array();
+		if(!$data) {
+			throw new NotFound();
+		}
 		return $data;
 	}
 	public function getGravFromEmail($email){
